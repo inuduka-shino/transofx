@@ -1,0 +1,25 @@
+{
+  "name": "transofx",
+  "version": "1.0.0",
+  "description": "translate from csv to ofx file",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inuduka-shino/transofx.git"
+  },
+  "keywords": [
+    "ofx"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/inuduka-shino/transofx/issues"
+  },
+  "homepage": "https://github.com/inuduka-shino/transofx#readme"
+}
