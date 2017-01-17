@@ -1,6 +1,7 @@
 /*eslint-env node */
 /*eslint no-await-in-loop: 0 */
 'use strict';
+const fs = require('fs');
 
 module.exports = {
   sample_promise(flag) {
@@ -11,5 +12,17 @@ module.exports = {
         reject(new Error('ERROR'));
       }
     });
+  },
+
+  fsstat(path) {
+    return new Promise((resolve, reject)=>{
+        fs.stat(path, (err, stat)=>{
+          if (err) {
+            reject(err);
+          } else {
+            resolve(stat);
+          }
+        });
+      });
   },
 };

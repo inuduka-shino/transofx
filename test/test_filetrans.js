@@ -7,9 +7,20 @@ const expect = require('chai').explct,
       target = require('../src/filectrl.js');
 
 describe('filectrl テスト', ()=>{
-  describe('genFolderテスト', ()=>{
-    const workFolderPath= 'work';
-    it('check folder', ()=>{
+  const workFolderPath= 'work';
+  describe.skip('fs.statテスト',() => {
+    return target.sample_promise(workFolderPath).then(
+      (stat) => {
+        expect(stat.isDirectory()).ok;
+      },
+      () => {
+        expect().is.not.undefined;
+      }
+    );
+
+  });
+  describe.skip('genFolderテスト', ()=>{
+    before(()=>{
       return target.fsstat(workFolderPath).then(
         (stat) => {
           expect(stat.isDirectory()).ok;
