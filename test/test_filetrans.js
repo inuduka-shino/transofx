@@ -7,7 +7,7 @@ const expect = require('chai').expect,
       target = require('../src/filectrl.js');
 
 function checkWorkFolder(workFolderPath) {
-  return target.fsstat(workFolderPath).then(
+  return target.stat(workFolderPath).then(
     (stat) => {
       if (!stat.isDirectory()) {
         throw new Error(`not directory for ${workFolderPath}`);

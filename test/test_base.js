@@ -14,11 +14,11 @@ describe('モジュール基本テスト', ()=>{
   it('module はあるか？', () => {
     expect(target).is.not.undefined;
   });
-  it('fsstat はあるか？', () => {
-    expect(target).has.property('fsstat');
+  it('stat はあるか？', () => {
+    expect(target).has.property('stat');
   });
-  it('fsstat は呼び出せるか？', () => {
-    return target.fsstat(workFolderPath).then((stat) => {
+  it('stat は呼び出せるか？', () => {
+    return target.stat(workFolderPath).then((stat) => {
       expect(stat.isDirectory()).to.be.true;
     });
   });

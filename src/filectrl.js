@@ -14,7 +14,7 @@ module.exports = {
     });
   },
 
-  fsstat(path) {
+  stat(path) {
     return new Promise((resolve, reject)=>{
         fs.stat(path, (err, stat)=>{
           if (err) {
