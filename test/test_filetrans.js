@@ -3,32 +3,30 @@
 /*eslint no-await-in-loop: 0 */
 
 
-const expect = require('chai').explct,
+const expect = require('chai').expect,
       target = require('../src/filectrl.js');
 
-describe('filectrl テスト', ()=>{
-  const workFolderPath= 'work';
-  describe.skip('fs.statテスト',() => {
-    return target.sample_promise(workFolderPath).then(
-      (stat) => {
-        expect(stat.isDirectory()).ok;
-      },
-      () => {
-        expect().is.not.undefined;
+function checkWorkFolder(workFolderPath) {
+  return target.fsstat(workFolderPath).then(
+    (stat) => {
+      if (!stat.isDirectory()) {
+        throw new Error(`not directory for ${workFolderPath}`);
       }
-    );
+    }
+  );
+}
 
-  });
-  describe.skip('genFolderテスト', ()=>{
-    before(()=>{
-      return target.fsstat(workFolderPath).then(
-        (stat) => {
-          expect(stat.isDirectory()).ok;
-        },
-        () => {
-          expect().is.not.undefined;
-        }
-      );
+describe('filectrl テスト', ()=>{
+  const workFolderPath= 'test/work';
+  describe('genFolderテスト', ()=>{
+    before(checkWorkFolder.bind(null,workFolderPath));
+    before(() => {
+      //TODO: clear workdir
+    });
+    it('よんでみる',()=> {
+      const targetpath = workFolderPath + '/aaaa',
+            return_val = target.genFolder(targetpath);
+      expect(return_val).is.a('Promise');
     });
   });
 });

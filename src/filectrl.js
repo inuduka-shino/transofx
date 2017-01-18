@@ -25,4 +25,18 @@ module.exports = {
         });
       });
   },
+  readdir(path, option) {
+    return new Promise((resolve, reject)=>{
+        fs.readdir(path, option, (err, files)=>{
+          if (err) {
+            reject(err);
+          } else {
+            resolve(files);
+          }
+        });
+      });
+  },
+  genFolder(path) {
+    return path;
+  }
 };
