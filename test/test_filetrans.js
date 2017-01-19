@@ -4,10 +4,11 @@
 
 
 const expect = require('chai').expect,
-      target = require('../src/filectrl.js');
+      fsp = require('../src/fs-promise.js'),
+      fileutil = require('../src/fileutil.js');
 
 function checkWorkFolder(workFolderPath) {
-  return target.stat(workFolderPath).then(
+  return fsp.stat(workFolderPath).then(
     (stat) => {
       if (!stat.isDirectory()) {
         throw new Error(`not directory for ${workFolderPath}`);
@@ -16,7 +17,7 @@ function checkWorkFolder(workFolderPath) {
   );
 }
 
-describe('filectrl テスト', ()=>{
+describe('fileutil テスト', ()=>{
   const workFolderPath= 'test/work';
   describe('genFolderテスト', ()=>{
     before(checkWorkFolder.bind(null,workFolderPath));
@@ -25,7 +26,7 @@ describe('filectrl テスト', ()=>{
     });
     it('よんでみる',()=> {
       const targetpath = workFolderPath + '/aaaa',
-            return_val = target.genFolder(targetpath);
+            return_val = fsp.genFolder(targetpath);
       expect(return_val).is.a('Promise');
     });
   });

@@ -4,26 +4,31 @@
 
 
 const expect = require('chai').expect,
-      target = require('../src/filectrl.js');
+      fsp = require('../src/fs-promise.js');
 
 function failTest() {
   expect().is.not.undefined;
 }
-describe('モジュール基本テスト', ()=>{
+describe('番外', ()=>{
+  it('Promise.denodeifyはない', ()=>{
+    expect(Promise.denodeify).is.undefined;
+  });
+});
+describe('fs-promiseテスト', ()=>{
   const workFolderPath= 'test/work';
   it('module はあるか？', () => {
-    expect(target).is.not.undefined;
+    expect(fsp).is.not.undefined;
   });
   it('stat はあるか？', () => {
-    expect(target).has.property('stat');
+    expect(fsp).has.property('stat');
   });
   it('stat は呼び出せるか？', () => {
-    return target.stat(workFolderPath).then((stat) => {
+    return fsp.stat(workFolderPath).then((stat) => {
       expect(stat.isDirectory()).to.be.true;
     });
   });
   it('sample_promise をテスト', () => {
-    return target.sample_promise(true).then(
+    return fsp.sample_promise(true).then(
       (ret)=>{
         expect(ret).is.not.undefined;
       },
@@ -31,7 +36,7 @@ describe('モジュール基本テスト', ()=>{
     );
   });
   it('rejectするsample_promise をテスト', () => {
-    return target.sample_promise(false).then(
+    return fsp.sample_promise(false).then(
       failTest,
       (err)=>{
         expect(err).is.a('Error');
