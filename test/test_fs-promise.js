@@ -4,14 +4,18 @@
 
 
 const expect = require('chai').expect,
+      denodeify = require('../src/denodeify.js'),
       fsp = require('../src/fs-promise.js');
 
 function failTest() {
   expect().is.not.undefined;
 }
-describe('番外', ()=>{
+describe('denodefiy test', ()=>{
   it('Promise.denodeifyはない', ()=>{
     expect(Promise.denodeify).is.undefined;
+  });
+  it('denodeify module',() => {
+    expect(denodeify).is.not.undefined;
   });
 });
 describe('fs-promiseテスト', ()=>{
