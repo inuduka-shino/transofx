@@ -24,6 +24,7 @@ const ifObj = {};
   const newIfObj = ifObj.extra = {};
   [
     'remove',
+    'emptydir',
     'mkdirs',
   ].forEach((name)=>{
     const newName = name + 'Promise';
