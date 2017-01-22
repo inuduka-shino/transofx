@@ -3,10 +3,8 @@
 'use strict';
 const fsp = require('./fs-promise.js');
 
-module.exports = {
-  genFolder(path) {
-    fsp.gendir(path);
+function touchPromise(path) {
+  return fsp.writeFilePromise(path, '');
+}
 
-return path;
-  }
-};
+module.exports = {touchPromise};

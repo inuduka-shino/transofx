@@ -13,6 +13,7 @@ const ifObj = {};
   [
     'stat',
     'readdir',
+    'writeFile',
   ].forEach((name)=>{
     const newName = name + 'Promise';
     newIfObj[newName] = promisify(fs[name]);

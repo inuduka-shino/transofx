@@ -4,6 +4,7 @@
 
 const expect = require('chai').expect,
       fsp = require('../src/fs-promise.js'),
+      fileutil = require('../src/fileutil.js'),
       co = require('co');
 
 function failTest() {
@@ -64,6 +65,7 @@ describe('fs-promiseテスト', ()=>{
           throw new Error(`${workFolderPath}ディレクトリがありません。`);
         }
         yield fsp.extra.emptydirPromise(workFolderPath);
+        yield fileutil.touchPromise(workFolderPath + '/.gitkeep');
       });
     });
 
