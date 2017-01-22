@@ -60,11 +60,7 @@ describe('fs-promiseテスト', ()=>{
   describe('実行テスト',()=>{
     before(() => {
       return co(function *() {
-        const stat = yield fsp.statPromise(workFolderPath);
-        if (!stat.isDirectory()) {
-          throw new Error(`${workFolderPath}ディレクトリがありません。`);
-        }
-        yield fsp.extra.emptydirPromise(workFolderPath);
+        yield fileutil.clearWorkFolder(workFolderPath);
         yield fileutil.touchPromise(workFolderPath + '/.gitkeep');
       });
     });
