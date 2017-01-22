@@ -8,7 +8,7 @@ const expect = require('chai').expect,
       fileutil = require('../src/fileutil.js');
 
 function checkWorkFolder(workFolderPath) {
-  return fsp.stat(workFolderPath).then(
+  return fsp.statPromise(workFolderPath).then(
     (stat) => {
       if (!stat.isDirectory()) {
         throw new Error(`not directory for ${workFolderPath}`);
@@ -26,7 +26,7 @@ describe('fileutil テスト', ()=>{
     });
     it('よんでみる',()=> {
       const targetpath = workFolderPath + '/aaaa',
-            return_val = fsp.genFolder(targetpath);
+            return_val = fileutil.genFolder(targetpath);
       expect(return_val).is.a('Promise');
     });
   });

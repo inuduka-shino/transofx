@@ -21,5 +21,12 @@
   "bugs": {
     "url": "https://github.com/inuduka-shino/transofx/issues"
   },
-  "homepage": "https://github.com/inuduka-shino/transofx#readme"
+  "homepage": "https://github.com/inuduka-shino/transofx#readme",
+  "dependencies": {
+    "es6-promisify": "^5.0.0",
+    "fs-extra": "^2.0.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0"
+  }
 }
