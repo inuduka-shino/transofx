@@ -12,6 +12,7 @@ function failTest() {
 }
 describe('fs-promiseテスト', ()=>{
   const workFolderPath= 'test/work';
+  const workFolder2Path= 'test/work2';
 
   describe('baseテスト',()=>{
     it('module はあるか？', () => {
@@ -73,6 +74,16 @@ describe('fs-promiseテスト', ()=>{
           const stat = yield fsp.statPromise(genFolderPath);
           expect(stat.isDirectory()).is.true;
         });
+      });
+    });
+  });
+  describe('writefilePromise', () => {
+    const textfilePath = workFolder2Path + '/sample.txt';
+    it('writeFilePromise確認', () =>{
+      return co(function *() {
+        yield fsp.writeFilePromise(textfilePath, 'data');
+        const stat = yield fsp.statPromise(textfilePath);
+        expect(stat.isFile()).is.true;
       });
     });
   });

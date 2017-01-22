@@ -2,7 +2,6 @@
 /*eslint strict: ["error", "function"], no-console: "off", */
 /*eslint no-await-in-loop: 0 */
 
-
 const expect = require('chai').expect,
       co = require('co'),
       fs = require('fs'),
@@ -10,8 +9,24 @@ const expect = require('chai').expect,
       fileutil = require('../src/fileutil.js'),
       transofx = require('../src/transofx.js');
 
+function readStreamPromise(strm) {
+  return new Promise((resolve, reject) => {
+    const chunk_list = [];
+    strm.on('data', (chunk)=>{
+        chunk_list.push(chunk);
+    });
+    strm.on('end', ()=>{
+      resolve(chunk_list.join(''));
+    });
+    strm.on('error', (err)=>{
+      reject(err);
+    });
+  });
+}
+
 describe('transofxテスト', ()=>{
   const workFolderPath= 'test/work';
+        //workFolder2Path= 'test/work2';
 
   beforeEach(() => {
     return co(function *() {
@@ -29,35 +44,24 @@ describe('transofxテスト', ()=>{
     });
   });
   describe('getCsvFileReadStreamテスト', ()=>{
-    const testfilepath = workFolderPath + '/testfile',
-          testdata = `content ${testfilepath}`;
 
-    before(() =>{
-      console.log('write fiel');
-
-      return fsp.writeFilePromise(testfilepath, testdata).then(()=>{
-        console.log('write fiel');
-      });
-    });
     describe('read test', ()=>{
-      it('getCsvFileReadStreamでデータを読んでみる',()=> {
-        const csvStream = transofx.getCsvFileReadStream(testfilepath);
-        expect(csvStream).is.not.undefined;
-        expect(csvStream).is.an.instanceof(fs.ReadStream);
+      const testfilepath = workFolderPath + '/testfile',
+            testdata = `content ${testfilepath}`;
 
-        return new Promise((resolve, reject) => {
-          const chunk_list = [];
-          csvStream.on('data', (chunk)=>{
-              chunk_list.add(chunk);
-          });
-          csvStream.on('end', ()=>{
-            resolve(chunk_list.join(''));
-          });
-          csvStream.on('error', (err)=>{
-            reject(err);
-          });
+      it('getCsvFileReadStreamでデータを読んでみる',()=> {
+        return co(function *() {
+          yield fsp.writeFilePromise(testfilepath, testdata, {});
+
+          const csvStream = transofx.getCsvFileReadStream(testfilepath);
+          expect(csvStream).is.not.undefined;
+          expect(csvStream).is.an.instanceof(fs.ReadStream);
+
+          const readdata = yield readStreamPromise(csvStream);
+          expect(readdata).is.equal(testdata);
         });
       });
     });
   });
+
 });
