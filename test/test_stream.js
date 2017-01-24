@@ -11,7 +11,8 @@ const expect = require('chai').expect,
       streamUtil = require('../src/streamUtil');
 
 describe('streamテスト', ()=>{
-  const workFolderPath= 'test/work';
+  const workFolderPath= 'test/work',
+        snbSampleCSVPath= 'test/work_sample';
         //workFolder2Path= 'test/work2';
 
   describe('streamUtil baseテスト', ()=>{
@@ -54,6 +55,7 @@ describe('streamテスト', ()=>{
           testdata = [
             ['A','B','C','D'],
             ['a','b','c','d'],
+            ['aa','bb','cc','dd'],
           ];
 
     before(() => {
@@ -105,13 +107,8 @@ describe('streamテスト', ()=>{
 
   });
 
-  describe.skip('csvparseテスト', ()=>{
-    const testfilepath = workFolderPath + '/testfile.csv',
-          testdata = [
-            ['A','B','C','D'],
-            ['a','b','c','d'],
-          ];
-
+  describe.skip('SNB Image テスト', ()=>{
+    const snbSampleCSVPath = sampleFolderPath + '/snm.csv';
     before(() => {
       const testdataStr = testdata.map((elms) =>{
         return elms.join(',');
@@ -124,18 +121,30 @@ describe('streamテスト', ()=>{
       });
     });
 
-    it('csvparseしてみる',()=> {
+    it('csvparseしてみる(header付き)',()=> {
+      const rStrm = fs.createReadStream(testfilepath);
+
       return co(function *() {
 
         const rStrm = fs.createReadStream(testfilepath),
-              csvStrm = rStrm.pipe(csvparse());
+              csvTransStrm = csvparse({
+                columns: true,
+                x: 0
+              }),
+              csvStrm = rStrm.pipe(csvTransStrm);
 
         const readdata = yield streamUtil.readStreamPromise(
           csvStrm, {objectMode: true});
-        expect(readdata).is.deep.equal(testdata);
+
+        const header = testdata[0];
+
+        readdata.forEach((readObj, objIndx) =>{
+          header.forEach((key, keyIndx) => {
+            expect(readObj).has.property(key, testdata[objIndx + 1][keyIndx]);
+          });
+        });
       });
     });
-
   });
 
 });
