@@ -60,9 +60,8 @@ describe('streamテスト', ()=>{
       const testdataStr = testdata.map((elms) =>{
         return elms.join(',');
       }).join('\n');
-      console.log(testdataStr);
 
-return co(function *() {
+      return co(function *() {
         yield fileutil.clearWorkFolder(workFolderPath);
         yield fileutil.touchPromise(workFolderPath + '/.gitkeep');
         yield fsp.writeFilePromise(testfilepath, testdataStr, {});
@@ -75,18 +74,9 @@ return co(function *() {
         const rStrm = fs.createReadStream(testfilepath),
               csvStrm = rStrm.pipe(csvparse());
 
-        csvStrm.on('data', (chunk)=>{
-          console.log('-----');
-          console.log(chunk);
-        });
-        csvStrm.on('end',()=>{
-          console.log('end');
-        });
-        csvStrm.on('error',(err)=>{
-          console.log('error');
-          console.log(err);
-        });
-        //expect(readdata).is.equal(testdata);
+        const readdata = yield streamUtil.readStreamPromise(
+          csvStrm, {objectMode: true});
+        expect(readdata).is.deep.equal(testdata);
       });
     });
 
