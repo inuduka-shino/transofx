@@ -72,6 +72,62 @@ describe('streamテスト', ()=>{
       return co(function *() {
 
         const rStrm = fs.createReadStream(testfilepath),
+              csvTransStrm = csvparse(),
+              csvStrm = rStrm.pipe(csvTransStrm);
+
+        const readdata = yield streamUtil.readStreamPromise(
+          csvStrm, {objectMode: true});
+        expect(readdata).is.deep.equal(testdata);
+      });
+    });
+    it('csvparseしてみる(header付き)',()=> {
+      return co(function *() {
+
+        const rStrm = fs.createReadStream(testfilepath),
+              csvTransStrm = csvparse({
+                columns: true,
+                x: 0
+              }),
+              csvStrm = rStrm.pipe(csvTransStrm);
+
+        const readdata = yield streamUtil.readStreamPromise(
+          csvStrm, {objectMode: true});
+
+        const header = testdata[0];
+
+        readdata.forEach((readObj, objIndx) =>{
+          header.forEach((key, keyIndx) => {
+            expect(readObj).has.property(key, testdata[objIndx + 1][keyIndx]);
+          });
+        });
+      });
+    });
+
+  });
+
+  describe.skip('csvparseテスト', ()=>{
+    const testfilepath = workFolderPath + '/testfile.csv',
+          testdata = [
+            ['A','B','C','D'],
+            ['a','b','c','d'],
+          ];
+
+    before(() => {
+      const testdataStr = testdata.map((elms) =>{
+        return elms.join(',');
+      }).join('\n');
+
+      return co(function *() {
+        yield fileutil.clearWorkFolder(workFolderPath);
+        yield fileutil.touchPromise(workFolderPath + '/.gitkeep');
+        yield fsp.writeFilePromise(testfilepath, testdataStr, {});
+      });
+    });
+
+    it('csvparseしてみる',()=> {
+      return co(function *() {
+
+        const rStrm = fs.createReadStream(testfilepath),
               csvStrm = rStrm.pipe(csvparse());
 
         const readdata = yield streamUtil.readStreamPromise(
