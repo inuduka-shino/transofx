@@ -6,19 +6,24 @@ const expect = require('chai').expect,
       co = require('co'),
       fs = require('fs'),
       iconv = require('iconv-lite'),
-      sjisTrans = iconv.decodeStream('shift-jis'),
       csvparse = require('csv-parse'),
-      fsp = require('../src/fs-promise'),
-      fileutil = require('../src/fileutil'),
       streamUtil = require('../src/streamUtil');
 
+const sjisTrans = iconv.decodeStream('shift-jis');
+
 describe('SNB Imageテスト', ()=>{
-  const workFolderPath = 'test/work',
-        sampleFolderPath = 'test/work_sample';
+  const
+        //workFolderPath = 'test/work',
+        sampleFolderPath = 'test/work_sample',
+        title_list = [
+          '日付',
+          '内容',
+        ];
         //workFolder2Path= 'test/work2';
 
   describe('SNB CSV read テスト', ()=>{
     const snbSampleCSVPath = sampleFolderPath + '/snb.csv';
+
     it('SNB CSV read',()=> {
       return co(function *() {
         const rStrm = fs.createReadStream(snbSampleCSVPath)
@@ -27,8 +32,14 @@ describe('SNB Imageテスト', ()=>{
 
         const rdata = yield streamUtil.readStreamPromise(
                       rStrm, {objectMode: true});
-        console.log(rdata);
+        rdata.forEach((data_elm)=>{
+          title_list.forEach((title)=>{
+            expect(data_elm).has.property(title);
+          });
+        });
       });
     });
+
   });
+
 });
