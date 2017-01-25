@@ -106,45 +106,4 @@ describe('streamテスト', ()=>{
     });
 
   });
-
-  describe.skip('SNB Image テスト', ()=>{
-    const snbSampleCSVPath = sampleFolderPath + '/snm.csv';
-    before(() => {
-      const testdataStr = testdata.map((elms) =>{
-        return elms.join(',');
-      }).join('\n');
-
-      return co(function *() {
-        yield fileutil.clearWorkFolder(workFolderPath);
-        yield fileutil.touchPromise(workFolderPath + '/.gitkeep');
-        yield fsp.writeFilePromise(testfilepath, testdataStr, {});
-      });
-    });
-
-    it('csvparseしてみる(header付き)',()=> {
-      const rStrm = fs.createReadStream(testfilepath);
-
-      return co(function *() {
-
-        const rStrm = fs.createReadStream(testfilepath),
-              csvTransStrm = csvparse({
-                columns: true,
-                x: 0
-              }),
-              csvStrm = rStrm.pipe(csvTransStrm);
-
-        const readdata = yield streamUtil.readStreamPromise(
-          csvStrm, {objectMode: true});
-
-        const header = testdata[0];
-
-        readdata.forEach((readObj, objIndx) =>{
-          header.forEach((key, keyIndx) => {
-            expect(readObj).has.property(key, testdata[objIndx + 1][keyIndx]);
-          });
-        });
-      });
-    });
-  });
-
 });
