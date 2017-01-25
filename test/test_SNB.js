@@ -1,6 +1,4 @@
 /*eslint-env mocha */
-/*eslint strict: ["error", "function"], no-console: "off", */
-/*eslint no-await-in-loop: 0 */
 
 const expect = require('chai').expect,
       co = require('co'),
@@ -9,29 +7,50 @@ const expect = require('chai').expect,
       csvparse = require('csv-parse'),
       streamUtil = require('../src/streamUtil');
 
-const sjisTrans = iconv.decodeStream('shift-jis');
 
 describe('SNB Imageテスト', ()=>{
   const
         //workFolderPath = 'test/work',
         sampleFolderPath = 'test/work_sample',
+        title_flag = true,
         title_list = [
           '日付',
           '内容',
+          '出金金額(円)',
+          '入金金額(円)',
+          '残高(円)',
+          'メモ',
         ];
-        //workFolder2Path= 'test/work2';
 
+  function readCSV(csvPath, option = {}) {
+
+    const inputStrm = fs.createReadStream(csvPath),
+          outputStrm = csvparse({
+                          columns: true,
+                        });
+    let decodedStrm = inputStrm;
+    
+    if (option.decode) {
+      decodedStrm = inputStrm.pipe(iconv.decodeStream(option.decode));
+    }
+    decodedStrm.pipe(outputStrm);
+
+    return outputStrm;
+  }
   describe('SNB CSV read テスト', ()=>{
     const snbSampleCSVPath = sampleFolderPath + '/snb.csv';
 
     it('SNB CSV read',()=> {
       return co(function *() {
-        const rStrm = fs.createReadStream(snbSampleCSVPath)
-                        .pipe(sjisTrans)
-                        .pipe(csvparse({columns: true,}));
+        const rStrm = readCSV(snbSampleCSVPath,{
+          decode: 'shift-jis',
+        });
 
         const rdata = yield streamUtil.readStreamPromise(
-                      rStrm, {objectMode: true});
+                      rStrm, {
+                        objectMode: true
+                      });
+        console.log(rdata[0]);
         rdata.forEach((data_elm)=>{
           title_list.forEach((title)=>{
             expect(data_elm).has.property(title);
