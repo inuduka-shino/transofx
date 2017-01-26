@@ -193,7 +193,7 @@ module.exports = {
         "object-curly-newline": ["warn", {"minProperties": 1}],
         "object-curly-spacing": "error",
         "object-property-newline": "error",
-        "object-shorthand": "error",
+        "object-shorthand": "warn",
         "one-var": "off",
         "one-var-declaration-per-line": "error",
         "operator-assignment": "error",
