@@ -45,6 +45,10 @@ function readCSV(csvPath, option = {}) {
       chunk.lineIndex = indx;
 
       if (option.header && indx === 0) {
+        if (option.headerCB) {
+          option.headerCB(chunk);
+        }
+
         return false;
       }
 
@@ -68,6 +72,14 @@ describe('SNB Imageテスト', ()=>{
             'income',
             'balance',
             'memo',
+          ],
+          title_list = [
+            '日付',
+            '内容',
+            '出金金額(円)',
+            '入金金額(円)',
+            '残高(円)',
+            'メモ',
           ];
 
 
@@ -77,14 +89,14 @@ describe('SNB Imageテスト', ()=>{
           decode: 'shift-jis',
           header: true,
           field_list,
-          title_list: [
-            '日付',
-            '内容',
-            '出金金額(円)',
-            '入金金額(円)',
-            '残高(円)',
-            'メモ',
-          ],
+          title_list,
+          headerCB (header) {
+              field_list.forEach((field, indx)=>{
+                if (header[field] !== title_list[indx]) {
+                  throw Error(`ヘッダ行フォーマットが違います。${header[field]}`);
+                }
+              });
+          }
         });
 
         const rdata = yield streamUtil.readStreamPromise(
