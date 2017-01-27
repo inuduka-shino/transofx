@@ -2,68 +2,15 @@
 
 const expect = require('chai').expect,
       co = require('co'),
-      fs = require('fs'),
-      stream = require('stream'),
-      iconv = require('iconv-lite'),
-      csvparse = require('csv-parse'),
+      bankFile = require('../src/bankFileUtil'),
       streamUtil = require('../src/streamUtil');
 
-function filterStream(fileterFunc) {
-  let count = 0;
-
-  return new stream.Transform({
-      objectMode: true,
-      transform(chunk, encode, cb) {
-          try {
-              if (fileterFunc(chunk ,count)) {
-                this.push(chunk);
-              }
-              count += 1;
-
-              return cb();
-          } catch (err) {
-              return cb(err);
-          }
-      },
-      flush: (cb) => {
-          cb();
-      }
-  });
-}
-
-function readCSV(csvPath, option = {}) {
-
-  let strm = fs.createReadStream(csvPath);
-
-  if (option.decode) {
-    strm = strm.pipe(iconv.decodeStream(option.decode));
-  }
-  strm = strm.pipe(csvparse({
-            columns: option.field_list,
-          }));
-  strm = strm.pipe(filterStream((chunk, indx) => {
-      chunk.lineIndex = indx;
-
-      if (option.header && indx === 0) {
-        if (option.headerCB) {
-          option.headerCB(chunk);
-        }
-
-        return false;
-      }
-
-      return true;
-  }));
-
-  return strm;
-}
-
-describe('SNB Imageテスト', ()=>{
+describe('SNB SAMBLE', ()=>{
   const
         //workFolderPath = 'test/work',
         sampleFolderPath = 'test/work_sample';
 
-  describe('SNB CSV read テスト', ()=>{
+  describe('CSV read', ()=>{
     const snbSampleCSVPath = sampleFolderPath + '/snb.csv',
           field_list = [
             'date',
@@ -85,7 +32,7 @@ describe('SNB Imageテスト', ()=>{
 
     it('SNB CSV read',()=> {
       return co(function *() {
-        const rStrm = readCSV(snbSampleCSVPath, {
+        const rStrm = bankFile.readCSV(snbSampleCSVPath, {
           decode: 'shift-jis',
           header: true,
           field_list,
