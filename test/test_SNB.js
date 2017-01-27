@@ -3,13 +3,34 @@
 const expect = require('chai').expect,
       co = require('co'),
       fs = require('fs'),
+      stream = require('stream'),
       iconv = require('iconv-lite'),
       csvparse = require('csv-parse'),
       streamUtil = require('../src/streamUtil');
 
-function skipHeader(objStrm) {
-  return objStrm;
+function filterStream(fileterFunc) {
+  let count = 0;
+
+  return new stream.Transform({
+      objectMode: true,
+      transform(chunk, encode, cb) {
+          try {
+              if (fileterFunc(chunk ,count)) {
+                this.push(chunk);
+              }
+              count += 1;
+
+              return cb();
+          } catch (err) {
+              return cb(err);
+          }
+      },
+      flush: (cb) => {
+          cb();
+      }
+  });
 }
+
 function readCSV(csvPath, option = {}) {
 
   let strm = fs.createReadStream(csvPath);
@@ -20,9 +41,15 @@ function readCSV(csvPath, option = {}) {
   strm = strm.pipe(csvparse({
             columns: option.field_list,
           }));
-  if (option.header) {
-    strm = skipHeader(strm);
-  }
+  strm = strm.pipe(filterStream((chunk, indx) => {
+      chunk.lineIndex = indx;
+
+      if (option.header && indx === 0) {
+        return false;
+      }
+
+      return true;
+  }));
 
   return strm;
 }
@@ -46,7 +73,7 @@ describe('SNB Imageテスト', ()=>{
 
     it('SNB CSV read',()=> {
       return co(function *() {
-        const rStrm = readCSV(snbSampleCSVPath,{
+        const rStrm = readCSV(snbSampleCSVPath, {
           decode: 'shift-jis',
           header: true,
           field_list,
