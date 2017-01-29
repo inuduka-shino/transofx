@@ -1,11 +1,14 @@
 module.exports = {
     "env": {
         "es6": true,
-        "node": true
     },
     "extends": "eslint:recommended",
     "parserOptions": {
-        "sourceType": "module"
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "ecmaFeatures": {
+          "impliedStrict": true
+        }
     },
     "rules": {
         "accessor-pairs": "error",
@@ -232,7 +235,7 @@ module.exports = {
             "error",
             "never"
         ],
-        "strict": "off",
+        "strict": "error",
         "symbol-description": "error",
         "template-curly-spacing": [
             "error",

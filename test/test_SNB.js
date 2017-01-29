@@ -1,4 +1,4 @@
-/*eslint-env mocha */
+/*eslint-env node, mocha */
 
 const expect = require('chai').expect,
       co = require('co'),
@@ -51,8 +51,9 @@ describe('SNB SAMBLE', ()=>{
                         objectMode: true,
                       });
 
-        console.log(rdata[0]);
-        console.log(rdata[1]);
+        console.log(rdata[0]); //eslint-disable-line no-console
+        console.log(rdata[1]); //eslint-disable-line no-console
+
         rdata.forEach((data_elm)=>{
           field_list.forEach((field)=>{
             expect(data_elm).has.property(field);
