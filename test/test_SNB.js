@@ -5,6 +5,13 @@ const expect = require('chai').expect,
       bankFile = require('../src/bankFileUtil'),
       streamUtil = require('../src/streamUtil');
 
+function failTest(message = 'bad path') {
+  return (val) => {
+    throw new Error(`${message}:[${val}]`);
+  };
+}
+
+
 describe('SNB SAMBLE', ()=>{
   const
         //workFolderPath = 'test/work',
@@ -27,24 +34,20 @@ describe('SNB SAMBLE', ()=>{
             '入金金額(円)',
             '残高(円)',
             'メモ',
-          ];
+          ],
+          snbOption = {
+            csvPath: snbSampleCSVPath,
+            encode: 'shift-jis',
+            header: true,
+            headerCheck: true,
+            fieldList,
+            titleList,
+          };
 
 
     it('SNB CSV read',()=> {
       return co(function *() {
-        const rStrm = bankFile.readCSV(snbSampleCSVPath, {
-          decode: 'shift-jis',
-          header: true,
-          fieldList,
-          titleList,
-          headerCB (header) {
-              fieldList.forEach((field, indx)=>{
-                if (header[field] !== titleList[indx]) {
-                  //throw Error(`ヘッダ行フォーマットが違います。${header[field]}`);
-                }
-              });
-          }
-        });
+        const rStrm = bankFile.readCSV(snbOption);
 
         const rdata = yield streamUtil.readStreamPromise(
                       rStrm, {
@@ -59,6 +62,35 @@ describe('SNB SAMBLE', ()=>{
             expect(dataElm).has.property(field);
           });
         });
+      });
+    });
+
+    it('SNB CSV read badHeader',()=> {
+      const badSnbOption = {
+        csvPath: snbSampleCSVPath,
+        encode: 'shift-jis',
+        header: true,
+        headerCheck: true,
+        fieldList,
+        titleList: [
+          '日付',
+          '内容',
+          '*-出金金額(円)',
+          '入金金額(円)',
+          '残高(円)',
+          'メモ',
+        ]
+      };
+
+      return co(function *() {
+        const rStrm = bankFile.readCSV(badSnbOption);
+
+        const err = yield streamUtil.readStreamPromise(
+                      rStrm, {
+                        objectMode: true,
+                      }).then(failTest(),(err) => err);
+
+        expect(err).is.a('Error');
       });
     });
 

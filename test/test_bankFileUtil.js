@@ -29,7 +29,7 @@ describe('bankFileUtil', ()=>{
               ];
 
 
-  it('SNB CSV read',()=> {
+  it('SNB CSV read 0',()=> {
     return co(function *() {
       const rStrm = bankFile.readCSV(snbSampleCSVPath, {
         decode: 'shift-jis',
@@ -50,8 +50,35 @@ describe('bankFileUtil', ()=>{
                       objectMode: true,
                     });
 
-      console.log(rdata[0]); //eslint-disable-line no-console
-      console.log(rdata[1]); //eslint-disable-line no-console
+      // console.log(rdata[0]); //eslint-disable-line no-console
+      // console.log(rdata[1]); //eslint-disable-line no-console
+
+      rdata.forEach((dataElm)=>{
+        fieldList.forEach((field)=>{
+          expect(dataElm).has.property(field);
+        });
+      });
+    });
+  });
+
+  it('SNB CSV read',()=> {
+    return co(function *() {
+      const rStrm = bankFile.readCSV({
+        csvPath: snbSampleCSVPath,
+        encode: 'shift-jis',
+        header: false,
+        fieldList,
+        titleList,
+        checkHeader: true
+      });
+
+      const rdata = yield streamUtil.readStreamPromise(
+                    rStrm, {
+                      objectMode: true,
+                    });
+
+      // console.log(rdata[0]); //eslint-disable-line no-console
+      // console.log(rdata[1]); //eslint-disable-line no-console
 
       rdata.forEach((dataElm)=>{
         fieldList.forEach((field)=>{
