@@ -87,7 +87,7 @@ module.exports = {
         "lines-around-comment": "error",
         "lines-around-directive": "off",
         "max-depth": "error",
-        "max-len": "error",
+        "max-len":  ["error", 100],
         "max-lines": "error",
         "max-nested-callbacks": "error",
         "max-params": "error",
@@ -190,7 +190,7 @@ module.exports = {
         "no-var": "error",
         "no-void": "error",
         "no-await-in-loop": 0,
-        "no-warning-comments": "error",
+        "no-warning-comments": "warn",
         "no-whitespace-before-property": "error",
         "no-with": "error",
         "object-curly-newline": ["warn", {"minProperties": 1}],
@@ -231,10 +231,7 @@ module.exports = {
         ],
         "space-infix-ops": "off",
         "space-unary-ops": "error",
-        "spaced-comment": [
-            "error",
-            "never"
-        ],
+        "spaced-comment": "off",
         "strict": "error",
         "symbol-description": "error",
         "template-curly-spacing": [

@@ -1,6 +1,6 @@
 /*eslint-env node, mocha */
 
-const expect = require('chai').expect,
+const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       fsp = require('../src/fs-promise.js'),
       fileutil = require('../src/fileutil.js'),
       co = require('co');
