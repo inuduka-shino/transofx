@@ -1,6 +1,4 @@
-/*eslint-env mocha */
-/*eslint strict: ["error", "function"], no-console: "off", */
-/*eslint no-await-in-loop: 0 */
+/*eslint-env node, mocha */
 
 const expect = require('chai').expect,
       co = require('co'),
@@ -11,8 +9,7 @@ const expect = require('chai').expect,
       streamUtil = require('../src/streamUtil');
 
 describe('streamテスト', ()=>{
-  const workFolderPath= 'test/work',
-        snbSampleCSVPath= 'test/work_sample';
+  const workFolderPath= 'test/work';
         //workFolder2Path= 'test/work2';
 
   describe('streamUtil baseテスト', ()=>{
@@ -40,10 +37,12 @@ describe('streamテスト', ()=>{
       return co(function *() {
 
         const rStrm = fs.createReadStream(testfilepath);
-        expect(rStrm).is.not.undefined;
+
+        expect(rStrm).is.not.undefined; //eslint-disable-line no-unused-expressions
         expect(rStrm).is.an.instanceof(fs.ReadStream);
 
         const readdata = yield streamUtil.readStreamPromise(rStrm);
+
         expect(readdata).is.equal(testdata);
       });
     });
@@ -77,8 +76,10 @@ describe('streamテスト', ()=>{
               csvTransStrm = csvparse(),
               csvStrm = rStrm.pipe(csvTransStrm);
 
-        const readdata = yield streamUtil.readStreamPromise(
-          csvStrm, {objectMode: true});
+        const readdata = yield streamUtil.readStreamPromise(csvStrm, {
+          objectMode: true
+        });
+
         expect(readdata).is.deep.equal(testdata);
       });
     });
@@ -92,8 +93,9 @@ describe('streamテスト', ()=>{
               }),
               csvStrm = rStrm.pipe(csvTransStrm);
 
-        const readdata = yield streamUtil.readStreamPromise(
-          csvStrm, {objectMode: true});
+        const readdata = yield streamUtil.readStreamPromise(csvStrm, {
+            objectMode: true
+          });
 
         const header = testdata[0];
 

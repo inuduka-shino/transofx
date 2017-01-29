@@ -1,21 +1,20 @@
 /*eslint-env node */
 /*eslint no-await-in-loop: 0 */
-'use strict';
 
 const stream = require('stream');
 
 function readStreamPromise(strm, options={}) {
   return new Promise((resolve, reject) => {
-    const chunk_list = [];
+    const chunkList = [];
 
     strm.on('data', (chunk)=>{
-        chunk_list.push(chunk);
+        chunkList.push(chunk);
     });
     strm.on('end', ()=>{
       if (options.objectMode) {
-        resolve(chunk_list);
+        resolve(chunkList);
       } else {
-        resolve(chunk_list.join(''));
+        resolve(chunkList.join(''));
       }
     });
     strm.on('error', (err)=>{
