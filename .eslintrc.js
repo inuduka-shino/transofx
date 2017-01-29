@@ -14,7 +14,7 @@ module.exports = {
         "accessor-pairs": "error",
         "array-bracket-spacing": "error",
         "array-callback-return": "error",
-        "arrow-body-style": "off",
+        "arrow-body-style":  "off",
         "arrow-parens": [
             "error",
             "always"
@@ -27,8 +27,8 @@ module.exports = {
             "1tbs"
         ],
         "callback-return": "error",
-        "camelcase": "off",
-        "capitalized-comments": 0,
+        "camelcase": "warn",
+        "capitalized-comments": "off",
         "class-methods-use-this": "error",
         "comma-dangle": "off",
         "comma-spacing": "off",
@@ -189,7 +189,7 @@ module.exports = {
         "no-useless-return": "error",
         "no-var": "error",
         "no-void": "error",
-        "no-await-in-loop": 0,
+        "no-await-in-loop": "error",
         "no-warning-comments": "warn",
         "no-whitespace-before-property": "error",
         "no-with": "error",
@@ -223,7 +223,7 @@ module.exports = {
         "sort-imports": "error",
         "sort-keys": "off",
         "sort-vars": "off",
-        "space-before-blocks": "error",
+        "space-before-blocks": "warn",
         "space-before-function-paren": "off",
         "space-in-parens": [
             "error",

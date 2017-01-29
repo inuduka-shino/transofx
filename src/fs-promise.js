@@ -1,5 +1,4 @@
 /*eslint-env node */
-/*eslint no-await-in-loop: 0 */
 
 const fs = require('fs'),
       fsExtra = require('fs-extra'),
@@ -38,7 +37,7 @@ const ifObj = {};
   });
 })(ifObj);
 
-ifObj.sample_promise = function (flag) {
+ifObj.samplePromise = function (flag) {
     return new Promise((resolve, reject)=>{
       if (flag) {
         resolve('OK');
