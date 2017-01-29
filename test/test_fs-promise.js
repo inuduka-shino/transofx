@@ -1,60 +1,62 @@
-/*eslint-env mocha */
-/*eslint strict: ["error", "function"], no-console: "off", */
-/*eslint no-await-in-loop: 0 */
+/*eslint-env node, mocha */
 
-const expect = require('chai').expect,
+const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       fsp = require('../src/fs-promise.js'),
       fileutil = require('../src/fileutil.js'),
       co = require('co');
 
-function failTest() {
-  expect().is.not.undefined;
+function failTest(message = 'bad path') {
+  return (val) => {
+    throw new Error(`${message}:[${val}]`);
+  };
 }
+
 describe('fs-promiseテスト', ()=>{
   const workFolderPath= 'test/work';
   const workFolder2Path= 'test/work2';
 
   describe('baseテスト',()=>{
     it('module はあるか？', () => {
-      expect(fsp).is.not.undefined;
+      expect(fsp).is.not.undefined; //eslint-disable-line no-unused-expressions
     });
     it('statPromise はあるか？', () => {
       expect(fsp).has.property('statPromise');
     });
     it('statPromise は呼び出せるか？', () => {
-      return fsp.statPromise(workFolderPath).then((stat) => {
+      return co(function *() {
+        const stat = yield fsp.statPromise(workFolderPath);
+
         expect(stat).is.a('Object');
       });
     });
     it('sample_promise をテスト', () => {
-      return fsp.sample_promise(true).then(
-        (ret)=>{
-          expect(ret).is.not.undefined;
-        },
-        failTest
-      );
+      return co(function *() {
+        const ret = yield fsp.samplePromise(true).catch(failTest('想定外のreject'));
+
+        expect(ret).is.not.undefined; //eslint-disable-line no-unused-expressions
+      });
     });
     it('rejectするsample_promise をテスト', () => {
-      return fsp.sample_promise(false).then(
-        failTest,
-        (err)=>{
-          expect(err).is.a('Error');
-        }
-      );
+      return co(function *() {
+        const err = yield fsp.samplePromise(false).then(failTest('想定外のresolve'), (err) => err);
+
+        expect(err).is.a('Error');
+      });
     });
   });
   describe('extra-baseテスト',()=>{
     it('module はあるか？', () => {
-      expect(fsp.extra).is.not.undefined;
+      expect(fsp.extra).is.not.undefined; //eslint-disable-line no-unused-expressions
     });
     it('removePromise はあるか？', () => {
       expect(fsp.extra).has.property('removePromise');
     });
     it('removePromise は呼び出せるか？', () => {
-      return fsp.extra.removePromise(workFolderPath + '/abcd')
-        .then((return_val) => {
-          expect(return_val).is.undefined;
-        });
+      return co(function *() {
+        const returnVal = yield fsp.extra.removePromise(workFolderPath + '/abcd');
+
+        expect(returnVal).is.undefined; //eslint-disable-line no-unused-expressions
+      });
     });
   });
 
@@ -68,22 +70,26 @@ describe('fs-promiseテスト', ()=>{
 
     describe('mkdirsPromise', () => {
       const genFolderPath = workFolderPath + '/aaa';
+
       it('mkdirsPromise確認', () =>{
         return co(function *() {
           yield fsp.extra.mkdirsPromise(genFolderPath);
           const stat = yield fsp.statPromise(genFolderPath);
-          expect(stat.isDirectory()).is.true;
+
+          return expect(stat.isDirectory()).is.true;
         });
       });
     });
   });
   describe('writefilePromise', () => {
     const textfilePath = workFolder2Path + '/sample.txt';
+
     it('writeFilePromise確認', () =>{
       return co(function *() {
         yield fsp.writeFilePromise(textfilePath, 'data');
         const stat = yield fsp.statPromise(textfilePath);
-        expect(stat.isFile()).is.true;
+
+        return expect(stat.isFile()).is.true;
       });
     });
   });

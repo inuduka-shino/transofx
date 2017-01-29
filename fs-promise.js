@@ -1,10 +1,10 @@
 /*eslint-env node */
 /*eslint no-await-in-loop: 0 */
-'use strict';
+
 const fs = require('fs');
 
 module.exports = {
-  sample_promise(flag) {
+  samplePromise(flag) {
     return new Promise((resolve, reject)=>{
       if (flag) {
         resolve('OK');

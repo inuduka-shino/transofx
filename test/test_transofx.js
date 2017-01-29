@@ -1,8 +1,6 @@
-/*eslint-env mocha */
-/*eslint strict: ["error", "function"], no-console: "off", */
-/*eslint no-await-in-loop: 0 */
+/*eslint-env node, mocha */
 
-const expect = require('chai').expect,
+const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       co = require('co'),
       fs = require('fs'),
       fsp = require('../src/fs-promise'),
@@ -39,7 +37,8 @@ describe('transofxテスト', ()=>{
           yield fsp.writeFilePromise(testfilepath, testdata, {});
 
           const csvStream = transofx.getCsvFileReadStream(testfilepath);
-          expect(csvStream).is.not.undefined;
+
+          expect(csvStream).is.not.undefined; //eslint-disable-line no-unused-expressions
           expect(csvStream).is.an.instanceof(fs.ReadStream);
 
           //const readdata = yield readStreamPromise(csvStream);

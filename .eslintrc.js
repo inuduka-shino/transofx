@@ -1,17 +1,20 @@
 module.exports = {
     "env": {
         "es6": true,
-        "node": true
     },
     "extends": "eslint:recommended",
     "parserOptions": {
-        "sourceType": "module"
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "ecmaFeatures": {
+          "impliedStrict": true
+        }
     },
     "rules": {
         "accessor-pairs": "error",
         "array-bracket-spacing": "error",
         "array-callback-return": "error",
-        "arrow-body-style": "off",
+        "arrow-body-style":  "off",
         "arrow-parens": [
             "error",
             "always"
@@ -24,8 +27,8 @@ module.exports = {
             "1tbs"
         ],
         "callback-return": "error",
-        "camelcase": "off",
-        "capitalized-comments": 0,
+        "camelcase": ["warn", {"properties": "always"}],
+        "capitalized-comments": "off",
         "class-methods-use-this": "error",
         "comma-dangle": "off",
         "comma-spacing": "off",
@@ -84,7 +87,7 @@ module.exports = {
         "lines-around-comment": "error",
         "lines-around-directive": "off",
         "max-depth": "error",
-        "max-len": "error",
+        "max-len":  ["error", 100],
         "max-lines": "error",
         "max-nested-callbacks": "error",
         "max-params": "error",
@@ -186,8 +189,8 @@ module.exports = {
         "no-useless-return": "error",
         "no-var": "error",
         "no-void": "error",
-        "no-await-in-loop": 0,
-        "no-warning-comments": "error",
+        "no-await-in-loop": "error",
+        "no-warning-comments": "warn",
         "no-whitespace-before-property": "error",
         "no-with": "error",
         "object-curly-newline": ["warn", {"minProperties": 1}],
@@ -220,7 +223,7 @@ module.exports = {
         "sort-imports": "error",
         "sort-keys": "off",
         "sort-vars": "off",
-        "space-before-blocks": "error",
+        "space-before-blocks": "warn",
         "space-before-function-paren": "off",
         "space-in-parens": [
             "error",
@@ -228,11 +231,8 @@ module.exports = {
         ],
         "space-infix-ops": "off",
         "space-unary-ops": "error",
-        "spaced-comment": [
-            "error",
-            "never"
-        ],
-        "strict": "off",
+        "spaced-comment": "off",
+        "strict": "error",
         "symbol-description": "error",
         "template-curly-spacing": [
             "error",
