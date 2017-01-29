@@ -14,7 +14,7 @@ module.exports = {
       strm = strm.pipe(iconv.decodeStream(option.decode));
     }
     strm = strm.pipe(csvparse({
-              columns: option.field_list,
+              columns: option.fieldList,
             }));
     strm = strm.pipe(streamUtil.filterStream((chunk, indx) => {
         chunk.lineIndex = indx;
