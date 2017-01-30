@@ -6,13 +6,25 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       bankFile = require('../src/bankFileUtil'),
       streamUtil = require('../src/streamUtil');
 
+function makeTransactionRecode(transactionObj) {
+  return 'transaction\n';
+}
+function makeHeaderString(headerObj) {
+  return '***HEADER***\n';
+}
 
-function transText() {
+function transText(options) {
+  let counter = 0;
+  const headerString = makeHeaderString(options);
   const transStrm = new stream.Transform({
       objectMode: true,
       transform(chunk, encode, cb) {
           try {
-              this.push('test\n');
+              if (counter === 0) {
+                this.push(headerString);
+              }
+              this.push(makeTransactionRecode(chunk));
+              counter += 1;
 
               return cb();
           } catch (err) {
@@ -24,8 +36,8 @@ function transText() {
       }
   });
 
-  transStrm._readableState.objectMode = false;
-  transStrm._writableState.objectMode = true;
+  transStrm._readableState.objectMode = false; //eslint-disable-line no-underscore-dangle
+  transStrm._writableState.objectMode = true; //eslint-disable-line no-underscore-dangle
 
   return transStrm;
 }
