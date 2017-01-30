@@ -9,21 +9,37 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
 function makeTransactionRecode(transactionObj) {
   return 'transaction\n';
 }
-function makeHeaderString(headerObj) {
-  return '***HEADER***\n';
+const ofxHeaders = [
+  'OFXHEADER',
+  'DATA', 'VERSION', 'SECURITY', 'ENCODING', 'CHARSET',
+  'COMPRESSION', 'OLDFILEUID', 'NEWFILEUID'
+];
+
+function *makeHeaderStrItr(headerObj) {
+
+  yield '***HEADER0***\n';
+
+  for (const name of ['test']) {
+      yield name + ':' + headerObj[name] + '\n';
+  }
+  yield '***HEADER1***\n';
 }
 
 function transText(options) {
   let counter = 0;
-  const headerString = makeHeaderString(options);
+  const headerStrIter = makeHeaderStrItr(options);
   const transStrm = new stream.Transform({
       objectMode: true,
       transform(chunk, encode, cb) {
           try {
               if (counter === 0) {
-                this.push(headerString);
+                for (const chunk of headerStrIter) {
+                  this.push(chunk);
+                }
               }
-              this.push(makeTransactionRecode(chunk));
+              if (counter < 2) {
+                this.push(makeTransactionRecode(chunk));
+              }
               counter += 1;
 
               return cb();
