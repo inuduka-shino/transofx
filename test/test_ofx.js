@@ -9,20 +9,18 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
 function makeTransactionRecode(transactionObj) {
   return 'transaction\n';
 }
-const ofxHeaders = [
-  'OFXHEADER',
-  'DATA', 'VERSION', 'SECURITY', 'ENCODING', 'CHARSET',
-  'COMPRESSION', 'OLDFILEUID', 'NEWFILEUID'
-];
 
 function *makeHeaderStrItr(headerObj) {
+  const ofxHeaders = [
+    //'OFXHEADER',
+    // 'DATA', 'VERSION', 'SECURITY', 'ENCODING', 'CHARSET',
+    //'COMPRESSION', 'OLDFILEUID', 'NEWFILEUID'
+    'testHeader0', 'testHeader1',
+  ];
 
-  yield '***HEADER0***\n';
-
-  for (const name of ['test']) {
-      yield name + ':' + headerObj[name] + '\n';
+  for (const name of ofxHeaders) {
+    yield name.toUpperCase() + ':' + headerObj[name] + '\n';
   }
-  yield '***HEADER1***\n';
 }
 
 function transText(options) {
@@ -89,7 +87,10 @@ describe('ofx', () => {
 
 
         return co(function *() {
-          const seriarizeStrm = transText();
+          const seriarizeStrm = transText({
+            testHeader0: 'testheader',
+            testHeader1: 'xxxxx',
+          });
           let rStrm = bankFile.readCSV(snbOption);
 
           rStrm = rStrm.pipe(seriarizeStrm);
