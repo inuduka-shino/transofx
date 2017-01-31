@@ -6,9 +6,6 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       bankFile = require('../src/bankFileUtil'),
       streamUtil = require('../src/streamUtil');
 
-function makeTransactionRecode(transactionObj) {
-  return 'transaction\n';
-}
 
 function *makeHeaderStrItr(headerObj) {
   const ofxHeaders = [
@@ -23,6 +20,25 @@ function *makeHeaderStrItr(headerObj) {
   }
 }
 
+function itrToRStrm(itr) {
+  // iterator -> readableStream
+  return new stream.Readable({
+    objectMode: false,
+    read() {
+      const result = itr.next();
+
+      if (result.done) {
+        this.push(null);
+      } else {
+        this.push(result.value);
+      }
+    }
+
+  });
+}
+function makeTransactionRecode() {
+  return 'transaceion\n';
+}
 function transText(options) {
   let counter = 0;
   const headerStrIter = makeHeaderStrItr(options);
@@ -107,6 +123,17 @@ describe('ofx', () => {
           }); */
           console.log(rdata);
 
+        });
+      });
+      it('teset itr2Rstrm',()=> {
+        const itr = makeHeaderStrItr({
+                      testHeader0: 'AAA',
+                      testHeader1: 'BBB',
+                    });
+        const rStrm = itrToRStrm(itr);
+
+        return streamUtil.readStreamPromise(rStrm).then((val) => {
+          console.log(val);
         });
       });
 
