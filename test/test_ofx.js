@@ -136,5 +136,37 @@ describe('ofx', () => {
           console.log(val);
         });
       });
+      it('teset join strm',()=> {
+        const itr = makeHeaderStrItr({
+                      testHeader0: 'AAA',
+                      testHeader1: 'BBB',
+                    });
+        const itr2 = makeHeaderStrItr({
+                      testHeader0: 'CCCC',
+                      testHeader1: 'DDDD',
+                    });
+
+        const rStrm = itrToRStrm(itr);
+        const rStrm2 = itrToRStrm(itr2);
+        const trans = new stream.Transform({
+          transform(chunk, encode, cb) {
+            this.push(chunk);
+            cb();
+          },
+          flush: (cb) => {
+              cb();
+          }
+        });
+        let rStrmx = rStrm.pipe(trans, {end:false});
+
+        rStrm.on('end', () =>{
+          rStrm2.pipe(trans);
+        });
+
+        return streamUtil.readStreamPromise(trans).then((val) => {
+          console.log(val);
+        });
+
+      });
 
 });
