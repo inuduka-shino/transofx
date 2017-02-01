@@ -73,35 +73,54 @@ function transText(options) {
 }
 describe('ofx', () => {
   const sampleFolderPath = 'test/work_sample';
+  const snbSampleCSVPath = sampleFolderPath + '/snb.csv',
+        fieldList = [
+          'date',
+          'contents',
+          'payment',
+          'income',
+          'balance',
+          'memo',
+        ],
+        titleList = [
+          '日付',
+          '内容',
+          '出金金額(円)',
+          '入金金額(円)',
+          '残高(円)',
+          'メモ',
+        ],
+        snbOption = {
+          csvPath: snbSampleCSVPath,
+          encode: 'shift-jis',
+          header: true,
+          headerCheck: true,
+          fieldList,
+          titleList,
+        };
 
-  it('SNB CSV read',()=> {
-    const snbSampleCSVPath = sampleFolderPath + '/snb.csv',
-          fieldList = [
-            'date',
-            'contents',
-            'payment',
-            'income',
-            'balance',
-            'memo',
-          ],
-          titleList = [
-            '日付',
-            '内容',
-            '出金金額(円)',
-            '入金金額(円)',
-            '残高(円)',
-            'メモ',
-          ],
-          snbOption = {
-            csvPath: snbSampleCSVPath,
-            encode: 'shift-jis',
-            header: true,
-            headerCheck: true,
-            fieldList,
-            titleList,
-          };
+      it.skip('construct OFX',()=> {
+            return co(function *() {
+              const bankDataStrm = bankFile.readCSV(snbOption);
+              const headerStrm = makeOfxHeaderStrm({
+                testHeader0: 'testheader',
+                testHeader1: 'xxxxx',
+              });
+              const ofxObjStrm = makeOfxBodyStrm();
 
+              let rStrm = joinStream([headerStrm, ofxObjStrm]);
 
+              const rdata = yield streamUtil.readStreamPromise(
+                            rStrm, {
+                              objectMode: false,
+                            });
+
+              console.log(rdata);
+
+          });
+      });
+
+      it('SNB CSV read',()=> {
         return co(function *() {
           const seriarizeStrm = transText({
             testHeader0: 'testheader',
@@ -121,10 +140,19 @@ describe('ofx', () => {
               expect(dataElm).has.property(field);
             });
           }); */
-          console.log(rdata);
+          //console.log(rdata);
+          expect(rdata).is.equal(`
+TESTHEADER0:testheader
+TESTHEADER1:xxxxx
+transaceion
+transaceion
+          `.trim() + '\n');
+
 
         });
       });
+
+
       it('teset itr2Rstrm',()=> {
         const itr = makeHeaderStrItr({
                       testHeader0: 'AAA',
@@ -133,38 +161,51 @@ describe('ofx', () => {
         const rStrm = itrToRStrm(itr);
 
         return streamUtil.readStreamPromise(rStrm).then((val) => {
-          console.log(val);
+          expect(val).is.equal(`
+TESTHEADER0:AAA
+TESTHEADER1:BBB
+          `.trim() + '\n');
         });
       });
+
       it('teset join strm',()=> {
         const itr = makeHeaderStrItr({
                       testHeader0: 'AAA',
                       testHeader1: 'BBB',
-                    });
-        const itr2 = makeHeaderStrItr({
+                    }),
+              itr2 = makeHeaderStrItr({
                       testHeader0: 'CCCC',
                       testHeader1: 'DDDD',
+                    }),
+              joinedStrm = new stream.Transform({
+                      transform(chunk, encode, cb) {
+                        this.push(chunk);
+                        cb();
+                      },
+                      flush: (cb) => {
+                          cb();
+                      }
                     });
 
-        const rStrm = itrToRStrm(itr);
-        const rStrm2 = itrToRStrm(itr2);
-        const trans = new stream.Transform({
-          transform(chunk, encode, cb) {
-            this.push(chunk);
-            cb();
-          },
-          flush: (cb) => {
-              cb();
-          }
-        });
-        let rStrmx = rStrm.pipe(trans, {end:false});
+        const rStrmA = itrToRStrm(itr),
+              rStrmB = itrToRStrm(itr2);
 
-        rStrm.on('end', () =>{
-          rStrm2.pipe(trans);
+        rStrmA.pipe(joinedStrm, {
+                end:false
+              });
+
+        rStrmA.on('end', () =>{
+          rStrmB.pipe(joinedStrm);
         });
 
-        return streamUtil.readStreamPromise(trans).then((val) => {
-          console.log(val);
+        return streamUtil.readStreamPromise(joinedStrm).then((val) => {
+          // console.log(val);
+          expect(val).is.equal(`
+TESTHEADER0:AAA
+TESTHEADER1:BBB
+TESTHEADER0:CCCC
+TESTHEADER1:DDDD
+          `.trim() + '\n');
         });
 
       });
