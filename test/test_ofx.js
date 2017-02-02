@@ -142,7 +142,7 @@ transaceion
                       testHeader0: 'AAA',
                       testHeader1: 'BBB',
                     });
-        const rStrm = itrToRStrm(itr);
+        const rStrm = streamUtil.itrToRStrm(itr);
 
         return streamUtil.readStreamPromise(rStrm).then((val) => {
           expect(val).is.equal(`
@@ -171,8 +171,8 @@ TESTHEADER1:BBB
                       }
                     });
 
-        const rStrmA = itrToRStrm(itr),
-              rStrmB = itrToRStrm(itr2);
+        const rStrmA = streamUtil.itrToRStrm(itr),
+              rStrmB = streamUtil.itrToRStrm(itr2);
 
         rStrmA.pipe(joinedStrm, {
                 end:false

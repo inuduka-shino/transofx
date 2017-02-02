@@ -118,7 +118,7 @@ function itrToRStrm(itr) {
         };
       }
 
-      return itr.next;
+      return itr.next.bind(itr);
   })();
 
 
