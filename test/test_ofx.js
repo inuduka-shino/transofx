@@ -106,7 +106,7 @@ describe('ofx', () => {
                 testHeader0: 'testheader',
                 testHeader1: 'xxxxx',
               });
-              const ofxObjStrm = makeOfxBodyStrm();
+              const ofxObjStrm = makeOfxBodyStrm(bankDataStrm);
 
               let rStrm = joinStream([headerStrm, ofxObjStrm]);
 
@@ -115,7 +115,7 @@ describe('ofx', () => {
                               objectMode: false,
                             });
 
-              console.log(rdata);
+              console.log(rdata); //eslint-disable-line no-console
 
           });
       });
@@ -168,7 +168,7 @@ TESTHEADER1:BBB
         });
       });
 
-      it('teset join strm',()=> {
+      it('teset join strm test code',()=> {
         const itr = makeHeaderStrItr({
                       testHeader0: 'AAA',
                       testHeader1: 'BBB',
@@ -209,5 +209,112 @@ TESTHEADER1:DDDD
         });
 
       });
+
+});
+
+function joinStream (streams) {
+  const joinedStrm = new stream.Transform({
+          transform(chunk, encode, cb) {
+            this.push(chunk);
+            cb();
+          },
+          flush: (cb) => {
+              cb();
+          }
+        }),
+        lastIndex = streams.length - 1;
+
+  if (lastIndex < 0) {
+    joinedStrm.end();
+
+    return joinedStrm;
+  }
+  streams.reduce((prevStrm, currentStrm, indx) => {
+    let endFlag = false;
+
+    if (indx === lastIndex) {
+      endFlag = true;
+    }
+
+    if (indx === 0) {
+      currentStrm.pipe(joinedStrm, {
+                    end: endFlag
+                  });
+    } else {
+      prevStrm.on('end', () =>{
+        currentStrm.pipe(joinedStrm, {
+                      end: endFlag
+                    });
+      });
+    }
+
+    return currentStrm;
+  }, null);
+
+  return joinedStrm;
+
+}
+
+it('teset join strm test',()=> {
+  const itr = makeHeaderStrItr({
+                testHeader0: 'AAA',
+                testHeader1: 'BBB',
+              }),
+        itr2 = makeHeaderStrItr({
+                testHeader0: 'CCCC',
+                testHeader1: 'DDDD',
+              });
+
+  const rStrmA = itrToRStrm(itr),
+        rStrmB = itrToRStrm(itr2);
+
+  const joinedStrm = joinStream([rStrmA, rStrmB]);
+
+  return streamUtil.readStreamPromise(joinedStrm).then((val) => {
+    // console.log(val);
+    expect(val).is.equal(`
+TESTHEADER0:AAA
+TESTHEADER1:BBB
+TESTHEADER0:CCCC
+TESTHEADER1:DDDD
+    `.trim() + '\n');
+  }, (err)=>{
+    console.log(err); //eslint-disable-line no-console
+    expect().is.equal(true, 'bad pass');
+  });
+
+});
+
+it('teset join strm test one stream',()=> {
+  const rStrmA = itrToRStrm(makeHeaderStrItr({
+                testHeader0: 'AAA',
+                testHeader1: 'BBB',
+              }));
+
+  const joinedStrm = joinStream([rStrmA]);
+
+  return streamUtil.readStreamPromise(joinedStrm).then((val) => {
+    // console.log(val);
+    expect(val).is.equal(`
+TESTHEADER0:AAA
+TESTHEADER1:BBB
+    `.trim() + '\n');
+  }, (err)=>{
+    console.log(err); //eslint-disable-line no-console
+    expect().is.equal(true, 'bad pass');
+  });
+
+});
+
+it('teset join strm test no stream',()=> {
+  const joinedStrm = joinStream([]);
+
+  return streamUtil.readStreamPromise(joinedStrm).then((val) => {
+    // console.log(val);
+    expect(val).is.equal('');
+  }, (err)=>{
+    console.log(err); //eslint-disable-line no-console
+    expect().is.equal(true, 'bad pass');
+  });
 
 });
