@@ -12,63 +12,6 @@ describe('streamテスト', ()=>{
   const workFolderPath= 'test/work';
         //workFolder2Path= 'test/work2';
 
-  describe('streamUtil joinStrmテスト', ()=>{
-    it('interfaceが取得できるか？',()=> {
-      expect(streamUtil.joinStream).is.a('Function');
-    });
-  });
-
-  it('teset join strm test',()=> {
-    const rStrmA = streamUtil.itrToRStrm(['AAA']),
-          rStrmB = streamUtil.itrToRStrm(['BBB']);
-
-    const joinedStrm = streamUtil.joinStream([rStrmA, rStrmB]);
-
-    return streamUtil.readStreamPromise(joinedStrm).then((val) => {
-      // console.log(val);
-      expect(val).is.equal('AAABBB');
-    }, (err)=>{
-      console.log(err); //eslint-disable-line no-console
-      expect().is.equal(true, 'bad pass');
-    });
-
-  });
-
-  it.skip('teset join strm test one stream',()=> {
-    const rStrmA = itrToRStrm(makeHeaderStrItr({
-                  testHeader0: 'AAA',
-                  testHeader1: 'BBB',
-                }));
-
-    const joinedStrm = joinStream([rStrmA]);
-
-    return streamUtil.readStreamPromise(joinedStrm).then((val) => {
-      // console.log(val);
-      expect(val).is.equal(`
-  TESTHEADER0:AAA
-  TESTHEADER1:BBB
-      `.trim() + '\n');
-    }, (err)=>{
-      console.log(err); //eslint-disable-line no-console
-      expect().is.equal(true, 'bad pass');
-    });
-
-  });
-
-  it.skip('teset join strm test no stream',()=> {
-    const joinedStrm = joinStream([]);
-
-    return streamUtil.readStreamPromise(joinedStrm).then((val) => {
-      // console.log(val);
-      expect(val).is.equal('');
-    }, (err)=>{
-      console.log(err); //eslint-disable-line no-console
-      expect().is.equal(true, 'bad pass');
-    });
-
-  });
-
-//---------------------
   describe('streamUtil baseテスト', ()=>{
     it('interfaceが取得できるか？',()=> {
       expect(streamUtil).is.a('Object');
@@ -165,4 +108,53 @@ describe('streamテスト', ()=>{
     });
 
   });
+
+  describe('streamUtil joinStrmテスト', ()=>{
+    it('interfaceが取得できるか？',()=> {
+      expect(streamUtil.joinStream).is.a('Function');
+    });
+
+    it('teset join strm test',()=> {
+      const rStrmA = streamUtil.itrToRStrm(['AAA']),
+            rStrmB = streamUtil.itrToRStrm(['BBB']),
+            joinedStrm = streamUtil.joinStream([rStrmA, rStrmB]);
+
+      return co(function *() {
+          const val = yield streamUtil.readStreamPromise(joinedStrm);
+
+          expect(val).is.equal('AAABBB');
+      });
+
+    });
+
+    it('teset join strm test one stream',()=> {
+      const rStrmA = streamUtil.itrToRStrm([
+                      'aaaa',
+                      'bbbbb',
+                      'ccccc',
+                    ]),
+             joinedStrm = streamUtil.joinStream([rStrmA]);
+
+      return co(function *() {
+        const val = yield streamUtil.readStreamPromise(joinedStrm);
+
+        expect(val).is.equal('aaaabbbbbccccc');
+      });
+
+    });
+
+    it('teset join strm test no stream',()=> {
+      const joinedStrm = streamUtil.joinStream([]);
+
+      return streamUtil.readStreamPromise(joinedStrm).then((val) => {
+        // console.log(val);
+        expect(val).is.equal('');
+      }, (err)=>{
+        console.log(err); //eslint-disable-line no-console
+        expect().is.equal(true, 'bad pass');
+      });
+
+    });
+  });
+
 });
