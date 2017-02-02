@@ -121,7 +121,6 @@ function itrToRStrm(itr) {
       return itr.next.bind(itr);
   })();
 
-
   return new stream.Readable({
     objectMode: false,
     read() {
