@@ -19,8 +19,8 @@ describe('streamテスト', ()=>{
   });
 
   it('teset join strm test',()=> {
-    const rStrmA = streamUtil.itrToRStrm('AAA'),
-          rStrmB = streamUtil.itrToRStrm('BBB');
+    const rStrmA = streamUtil.itrToRStrm(['AAA']),
+          rStrmB = streamUtil.itrToRStrm(['BBB']);
 
     const joinedStrm = streamUtil.joinStream([rStrmA, rStrmB]);
 

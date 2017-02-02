@@ -96,10 +96,36 @@ function filterStream(fileterFunc , initialValue) {
 
 function itrToRStrm(itr) {
   // iterator -> readableStream
+  const nextElem = (()=>{
+      if (Array.isArray(itr)) {
+        let idx = 0;
+        const size = itr.length;
+
+        return function() {
+            const val = itr[idx];
+
+            if (idx === size) {
+              return {
+                done: true
+              };
+            }
+            idx += 1;
+
+            return {
+              done: false,
+              value: val
+            };
+        };
+      }
+
+      return itr.next;
+  })();
+
+
   return new stream.Readable({
     objectMode: false,
     read() {
-      const result = itr.next();
+      const result = nextElem();
 
       if (result.done) {
         this.push(null);
