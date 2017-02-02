@@ -49,12 +49,26 @@ function transText(options) {
           cb();
       }
   });
-
   transStrm._readableState.objectMode = false; //eslint-disable-line no-underscore-dangle
   transStrm._writableState.objectMode = true; //eslint-disable-line no-underscore-dangle
 
   return transStrm;
 }
+
+function makeOfxStrm(ofxInfo, transactionStrm) {
+
+  const ofxHeaderStrm = streamUtil.itrToRStrm(makeHeaderStrItr(ofxInfo.header));
+
+  /* const ofxBody = {
+          body: transactionStrm
+        };
+        */
+  //const ofxHeaderItr;
+
+  //return streamUtil.joinStream([ofxHeaderStrm, newLine, bodyStrm]);
+  return streamUtil.joinStream([ofxHeaderStrm]);
+}
+
 describe('ofx', () => {
   const sampleFolderPath = 'test/work_sample';
   const snbSampleCSVPath = sampleFolderPath + '/snb.csv',
@@ -65,133 +79,28 @@ describe('ofx', () => {
           'income',
           'balance',
           'memo',
-        ],
-        titleList = [
-          '日付',
-          '内容',
-          '出金金額(円)',
-          '入金金額(円)',
-          '残高(円)',
-          'メモ',
-        ],
-        snbOption = {
-          csvPath: snbSampleCSVPath,
-          encode: 'shift-jis',
-          header: true,
-          headerCheck: true,
-          fieldList,
-          titleList,
-        };
+        ];
 
-      it.skip('construct OFX',()=> {
-            return co(function *() {
-              const bankDataStrm = bankFile.readCSV(snbOption);
-              const headerStrm = makeOfxHeaderStrm({
+    it('construct OFX',()=> {
+          return co(function *() {
+            const rStrm = makeOfxStrm({
+              header: {
                 testHeader0: 'testheader',
                 testHeader1: 'xxxxx',
-              });
-              const ofxObjStrm = makeOfxBodyStrm(bankDataStrm);
+              }
+            }, []);
+            const rdata = yield streamUtil.readStreamPromise(
+                          rStrm, {
+                            objectMode: false,
+                          });
 
-              let rStrm = joinStream([headerStrm, ofxObjStrm]);
-
-              const rdata = yield streamUtil.readStreamPromise(
-                            rStrm, {
-                              objectMode: false,
-                            });
-
-              console.log(rdata); //eslint-disable-line no-console
-
-          });
-      });
-
-      it('SNB CSV read',()=> {
-        return co(function *() {
-          const seriarizeStrm = transText({
-            testHeader0: 'testheader',
-            testHeader1: 'xxxxx',
-          });
-          let rStrm = bankFile.readCSV(snbOption);
-
-          rStrm = rStrm.pipe(seriarizeStrm);
-
-          const rdata = yield streamUtil.readStreamPromise(
-                        rStrm, {
-                          objectMode: false,
-                        });
-
-          /* rdata.forEach((dataElm)=>{
-            fieldList.forEach((field)=>{
-              expect(dataElm).has.property(field);
-            });
-          }); */
-          //console.log(rdata);
-          expect(rdata).is.equal(`
+            console.log(rdata); //eslint-disable-line no-console
+            expect(rdata).is.equal(`
 TESTHEADER0:testheader
 TESTHEADER1:xxxxx
-transaceion
-transaceion
-          `.trim() + '\n');
-
+              `.trim() + '\n');
 
         });
-      });
-
-
-      it('teset itr2Rstrm',()=> {
-        const itr = makeHeaderStrItr({
-                      testHeader0: 'AAA',
-                      testHeader1: 'BBB',
-                    });
-        const rStrm = itrToRStrm(itr);
-
-        return streamUtil.readStreamPromise(rStrm).then((val) => {
-          expect(val).is.equal(`
-TESTHEADER0:AAA
-TESTHEADER1:BBB
-          `.trim() + '\n');
-        });
-      });
-
-      it('teset join strm test code',()=> {
-        const itr = makeHeaderStrItr({
-                      testHeader0: 'AAA',
-                      testHeader1: 'BBB',
-                    }),
-              itr2 = makeHeaderStrItr({
-                      testHeader0: 'CCCC',
-                      testHeader1: 'DDDD',
-                    }),
-              joinedStrm = new stream.Transform({
-                      transform(chunk, encode, cb) {
-                        this.push(chunk);
-                        cb();
-                      },
-                      flush: (cb) => {
-                          cb();
-                      }
-                    });
-
-        const rStrmA = itrToRStrm(itr),
-              rStrmB = itrToRStrm(itr2);
-
-        rStrmA.pipe(joinedStrm, {
-                end:false
-              });
-
-        rStrmA.on('end', () =>{
-          rStrmB.pipe(joinedStrm);
-        });
-
-        return streamUtil.readStreamPromise(joinedStrm).then((val) => {
-          // console.log(val);
-          expect(val).is.equal(`
-TESTHEADER0:AAA
-TESTHEADER1:BBB
-TESTHEADER0:CCCC
-TESTHEADER1:DDDD
-          `.trim() + '\n');
-        });
-
-      });
+    });
 
 });
