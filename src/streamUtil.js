@@ -3,6 +3,49 @@
 
 const stream = require('stream');
 
+function joinStream (streams) {
+  const joinedStrm = new stream.Transform({
+          transform(chunk, encode, cb) {
+            this.push(chunk);
+            cb();
+          },
+          flush: (cb) => {
+              cb();
+          }
+        }),
+        lastIndex = streams.length - 1;
+
+  if (lastIndex < 0) {
+    joinedStrm.end();
+
+    return joinedStrm;
+  }
+  streams.reduce((prevStrm, currentStrm, indx) => {
+    let endFlag = false;
+
+    if (indx === lastIndex) {
+      endFlag = true;
+    }
+
+    if (indx === 0) {
+      currentStrm.pipe(joinedStrm, {
+                    end: endFlag
+                  });
+    } else {
+      prevStrm.on('end', () =>{
+        currentStrm.pipe(joinedStrm, {
+                      end: endFlag
+                    });
+      });
+    }
+
+    return currentStrm;
+  }, null);
+
+  return joinedStrm;
+
+}
+
 function readStreamPromise(strm, options={}) {
   return new Promise((resolve, reject) => {
     const chunkList = [];
@@ -51,7 +94,26 @@ function filterStream(fileterFunc , initialValue) {
   });
 }
 
+function itrToRStrm(itr) {
+  // iterator -> readableStream
+  return new stream.Readable({
+    objectMode: false,
+    read() {
+      const result = itr.next();
+
+      if (result.done) {
+        this.push(null);
+      } else {
+        this.push(result.value);
+      }
+    }
+
+  });
+}
+
 module.exports = {
   readStreamPromise,
   filterStream,
+  joinStream,
+  itrToRStrm,
 };
