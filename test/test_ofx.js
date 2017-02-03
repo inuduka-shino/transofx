@@ -71,9 +71,10 @@ function transText(options) {
   return transStrm;
 }
 
-function makeOfxStrm(ofxInfo, transactionStrm) {
+function *makeOfxItr(ofxInfo, transactionStrm) {
 
-  const ofxHeaderStrm = streamUtil.itrToRStrm(makeHeaderStrItr(ofxInfo.header));
+  yield* makeHeaderStrItr(ofxInfo.header);
+  yield '\n';
 
   /* const ofxBody = {
           body: transactionStrm
@@ -82,7 +83,7 @@ function makeOfxStrm(ofxInfo, transactionStrm) {
   //const ofxHeaderItr;
 
   //return streamUtil.joinStream([ofxHeaderStrm, newLine, bodyStrm]);
-  return streamUtil.joinStream([ofxHeaderStrm]);
+  //return streamUtil.joinStream([ofxHeaderStrm, newLineStrm]);
 }
 
 describe('ofx', () => {
@@ -99,14 +100,14 @@ describe('ofx', () => {
 
     it('construct OFX',()=> {
           return co(function *() {
-            const rStrm = makeOfxStrm({
+            const ofxItr = makeOfxItr({
               header: {
                 testHeader0: 'testheader',
                 testHeader1: 'xxxxx',
               }
             }, []);
             const rdata = yield streamUtil.readStreamPromise(
-                          rStrm, {
+                          streamUtil.itrToRStrm(ofxItr), {
                             objectMode: false,
                           });
 
@@ -114,6 +115,7 @@ describe('ofx', () => {
             expect(rdata).is.equal(trimLine(`
                 #TESTHEADER0:testheader
                 #TESTHEADER1:xxxxx
+                #
               `));
 
         });
