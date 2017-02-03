@@ -6,6 +6,21 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       bankFile = require('../src/bankFileUtil'),
       streamUtil = require('../src/streamUtil');
 
+  const trimLine = (()=>{
+    const linePattern = /(\n|^)(\s*#)/g,
+          firstLinePattern = /^\s*/,
+          endLinePattern = /(\n|^)\s*$/;
+
+    return (linesStr) => {
+          const val = linesStr
+                  .replace(firstLinePattern, '')
+                  .replace(endLinePattern, '$1')
+                  .replace(linePattern, '$1');
+
+          return val;
+        };
+
+  })();
 
 function *makeHeaderStrItr(headerObj) {
   const ofxHeaders = [
@@ -23,6 +38,7 @@ function *makeHeaderStrItr(headerObj) {
 function makeTransactionRecode() {
   return 'transaceion\n';
 }
+
 function transText(options) {
   let counter = 0;
   const headerStrIter = makeHeaderStrItr(options);
@@ -95,10 +111,10 @@ describe('ofx', () => {
                           });
 
             console.log(rdata); //eslint-disable-line no-console
-            expect(rdata).is.equal(`
-TESTHEADER0:testheader
-TESTHEADER1:xxxxx
-              `.trim() + '\n');
+            expect(rdata).is.equal(trimLine(`
+                #TESTHEADER0:testheader
+                #TESTHEADER1:xxxxx
+              `));
 
         });
     });
