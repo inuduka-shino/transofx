@@ -6,8 +6,23 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       bankFile = require('../src/bankFileUtil'),
       streamUtil = require('../src/streamUtil');
 
+  const trimLine = (()=>{
+    const linePattern = /(\n|^)(\s*#)/g,
+          firstLinePattern = /^\s*/,
+          endLinePattern = /(\n|^)\s*$/;
 
-function *makeHeaderStrItr(headerObj) {
+    return (linesStr) => {
+          const val = linesStr
+                  .replace(firstLinePattern, '')
+                  .replace(endLinePattern, '$1')
+                  .replace(linePattern, '$1');
+
+          return val;
+        };
+
+  })();
+
+function *makeHeaderItr(headerObj) {
   const ofxHeaders = [
     //'OFXHEADER',
     // 'DATA', 'VERSION', 'SECURITY', 'ENCODING', 'CHARSET',
@@ -19,13 +34,42 @@ function *makeHeaderStrItr(headerObj) {
     yield name.toUpperCase() + ':' + headerObj[name] + '\n';
   }
 }
+function checkType(elm) {
+  const typeofElm = typeof elm;
 
-function makeTransactionRecode() {
-  return 'transaceion\n';
+  if (typeofElm === 'string') {
+    return 'string';
+  }
+  if (typeofElm === 'number') {
+    return 'number';
+  }
+  if (typeofElm === 'object') {
+    return 'object';
+  }
+  throw new Error(`unkown Struct Elemnt Type:${typeofElm}`);
 }
+
+function *makeBodyItr(elm) {
+  const elmType = checkType(elm);
+
+  if (elmType === 'object') {
+    for (const key in elm) {
+      if (Object.prototype.hasOwnProperty.call(elm, key)) {
+        yield `<${key}>\n`;
+        yield* makeBodyItr(elm[key]);
+        yield `</${key}>\n`;
+      }
+    }
+  } else if (elmType === 'string') {
+    yield `${elm}\n`;
+  } else if (elmType === 'number') {
+    yield `${elm}\n`;
+  }
+
+}
+
 function transText(options) {
   let counter = 0;
-  const headerStrIter = makeHeaderStrItr(options);
   const transStrm = new stream.Transform({
       objectMode: true,
       transform(chunk, encode, cb) {
@@ -36,7 +80,7 @@ function transText(options) {
                 }
               }
               if (counter < 2) {
-                this.push(makeTransactionRecode(chunk));
+                this.push(xmakeTransactionRecode(chunk));
               }
               counter += 1;
 
@@ -55,9 +99,16 @@ function transText(options) {
   return transStrm;
 }
 
-function makeOfxStrm(ofxInfo, transactionStrm) {
+function *makeOfxItr(ofxInfo, transactionStrm) {
 
-  const ofxHeaderStrm = streamUtil.itrToRStrm(makeHeaderStrItr(ofxInfo.header));
+  yield* makeHeaderItr(ofxInfo.header);
+  yield '\n';
+  yield* makeBodyItr({
+          'body': 'aaa',
+          'body2': {
+            'sub-body': 1230 + 4,
+          },
+        });
 
   /* const ofxBody = {
           body: transactionStrm
@@ -66,7 +117,7 @@ function makeOfxStrm(ofxInfo, transactionStrm) {
   //const ofxHeaderItr;
 
   //return streamUtil.joinStream([ofxHeaderStrm, newLine, bodyStrm]);
-  return streamUtil.joinStream([ofxHeaderStrm]);
+  //return streamUtil.joinStream([ofxHeaderStrm, newLineStrm]);
 }
 
 describe('ofx', () => {
@@ -83,22 +134,31 @@ describe('ofx', () => {
 
     it('construct OFX',()=> {
           return co(function *() {
-            const rStrm = makeOfxStrm({
+            const ofxItr = makeOfxItr({
               header: {
                 testHeader0: 'testheader',
                 testHeader1: 'xxxxx',
               }
             }, []);
             const rdata = yield streamUtil.readStreamPromise(
-                          rStrm, {
+                          streamUtil.itrToRStrm(ofxItr), {
                             objectMode: false,
                           });
 
             console.log(rdata); //eslint-disable-line no-console
-            expect(rdata).is.equal(`
-TESTHEADER0:testheader
-TESTHEADER1:xxxxx
-              `.trim() + '\n');
+            expect(rdata).is.equal(trimLine(`
+                #TESTHEADER0:testheader
+                #TESTHEADER1:xxxxx
+                #
+                #<body>
+                #aaa
+                #</body>
+                #<body2>
+                #<sub-body>
+                #1234
+                #</sub-body>
+                #</body2>
+              `));
 
         });
     });
