@@ -43,6 +43,9 @@ function checkType(elm) {
   if (typeofElm === 'number') {
     return 'number';
   }
+  if (Array.isArray(elm)) {
+    return 'array';
+  }
   if (typeofElm === 'object') {
     return 'object';
   }
@@ -53,12 +56,10 @@ function *makeBodyItr(elm) {
   const elmType = checkType(elm);
 
   if (elmType === 'object') {
-    for (const key in elm) {
-      if (Object.prototype.hasOwnProperty.call(elm, key)) {
-        yield `<${key}>\n`;
-        yield* makeBodyItr(elm[key]);
-        yield `</${key}>\n`;
-      }
+    for (const key of Reflect.ownKeys(elm)) {
+      yield `<${key}>\n`;
+      yield* makeBodyItr(elm[key]);
+      yield `</${key}>\n`;
     }
   } else if (elmType === 'string') {
     yield `${elm}\n`;
