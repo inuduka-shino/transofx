@@ -52,23 +52,27 @@ function checkType(elm) {
   throw new Error(`unkown Struct Elemnt Type:${typeofElm}`);
 }
 
-function *makeBodyItr(elm) {
+function *makeBodyItr(pKey, elm) {
   const elmType = checkType(elm);
 
   if (elmType === 'object') {
+    yield `<${pKey}>\n`;
     for (const key of Reflect.ownKeys(elm)) {
-      yield `<${key}>\n`;
-      yield* makeBodyItr(elm[key]);
-      yield `</${key}>\n`;
+      yield* makeBodyItr(key, elm[key]);
     }
+    yield `</${pKey}>\n`;
   } else if (elmType === 'array') {
     for (const val of elm) {
-      yield `${val}\n`;
+      yield* makeBodyItr(pKey, val);
     }
   } else if (elmType === 'string') {
+    yield `<${pKey}>\n`;
     yield `${elm}\n`;
+    yield `</${pKey}>\n`;
   } else if (elmType === 'number') {
+    yield `<${pKey}>\n`;
     yield `${elm}\n`;
+    yield `</${pKey}>\n`;
   }
 
 }
@@ -108,15 +112,23 @@ function *makeOfxItr(ofxInfo, transactionStrm) {
 
   yield* makeHeaderItr(ofxInfo.header);
   yield '\n';
-  yield* makeBodyItr({
-          'body': 'aaa',
-          'bodyX': 55,
-          /*
-          'body2': {
-            'sub-body': 1230 + 4,
-            'list': ['a', 'b'],
+  yield* makeBodyItr('root', {
+          'str': 'aaa',
+          'num': 55,
+          'dict': {
+            'm':'v',
+            'n':'u',
           },
-          */
+          'arr': ['a', 'b'],
+          'arrZ': [],
+          'dict-ad': {
+            'arr': ['a'],
+            'dict': {'X':'x'},
+          },
+          'arr-ad': [
+            ['a', 'b'],
+            {'X':'x'},
+          ],
         });
 
   /* const ofxBody = {
@@ -159,12 +171,14 @@ describe('ofx', () => {
                 #TESTHEADER0:testheader
                 #TESTHEADER1:xxxxx
                 #
+                #<root>
                 #<body>
                 #aaa
                 #</body>
                 #<bodyX>
                 #55
                 #</bodyX>
+                #</root>
               `));
 
         });
