@@ -108,6 +108,7 @@ function *makeOfxItr(ofxInfo, transactionStrm) {
           'body': 'aaa',
           'body2': {
             'sub-body': 1230 + 4,
+            'list': ['a', 'b'],
           },
         });
 
