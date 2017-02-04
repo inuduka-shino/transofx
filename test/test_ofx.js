@@ -61,6 +61,10 @@ function *makeBodyItr(elm) {
       yield* makeBodyItr(elm[key]);
       yield `</${key}>\n`;
     }
+  } else if (elmType === 'array') {
+    for (const val of elm) {
+      yield `${val}\n`;
+    }
   } else if (elmType === 'string') {
     yield `${elm}\n`;
   } else if (elmType === 'number') {
@@ -106,10 +110,13 @@ function *makeOfxItr(ofxInfo, transactionStrm) {
   yield '\n';
   yield* makeBodyItr({
           'body': 'aaa',
+          'bodyX': 55,
+          /*
           'body2': {
             'sub-body': 1230 + 4,
             'list': ['a', 'b'],
           },
+          */
         });
 
   /* const ofxBody = {
@@ -155,11 +162,9 @@ describe('ofx', () => {
                 #<body>
                 #aaa
                 #</body>
-                #<body2>
-                #<sub-body>
-                #1234
-                #</sub-body>
-                #</body2>
+                #<bodyX>
+                #55
+                #</bodyX>
               `));
 
         });
