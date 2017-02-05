@@ -120,14 +120,19 @@ function *makeOfxItr(ofxInfo, transactionStrm) {
             'n':'u',
           },
           'arr': ['a', 'b'],
-          'arrZ': [],
           'dict-ad': {
             'arr': ['a'],
-            'dict': {'X':'x'},
+            'dict': {
+                'X':'x'
+            },
           },
-          'arr-ad': [
-            ['a', 'b'],
-            {'X':'x'},
+          'arr-dict': [
+            {
+                'X':'x'
+            },
+            {
+                'Y':'y'
+            },
           ],
         });
 
@@ -172,12 +177,46 @@ describe('ofx', () => {
                 #TESTHEADER1:xxxxx
                 #
                 #<root>
-                #<body>
+                #<str>
                 #aaa
-                #</body>
-                #<bodyX>
+                #</str>
+                #<num>
                 #55
-                #</bodyX>
+                #</num>
+                #<dict>
+                #<m>
+                #v
+                #</m>
+                #<n>
+                #u
+                #</n>
+                #</dict>
+                #<arr>
+                #a
+                #</arr>
+                #<arr>
+                #b
+                #</arr>
+                #<dict-ad>
+                #<arr>
+                #a
+                #</arr>
+                #<dict>
+                #<X>
+                #x
+                #</X>
+                #</dict>
+                #</dict-ad>
+                #<arr-dict>
+                #<X>
+                #x
+                #</X>
+                #</arr-dict>
+                #<arr-dict>
+                #<Y>
+                #y
+                #</Y>
+                #</arr-dict>
                 #</root>
               `));
 
