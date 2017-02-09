@@ -2,8 +2,10 @@
 
 const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       co = require('co'),
-      stream = require('stream'),
-      bankFile = require('../src/bankFileUtil'),
+      fs = require('fs'),
+      ofxUtil = require('../src/ofxUtil'),
+      //bankFile = require('../src/bankFileUtil'),
+      //stream = require('stream'),
       streamUtil = require('../src/streamUtil');
 
   const trimLine = (()=>{
@@ -22,53 +24,27 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
 
   })();
 
-function *makeHeaderItr(headerObj) {
-  const ofxHeaders = [
-    //'OFXHEADER',
-    // 'DATA', 'VERSION', 'SECURITY', 'ENCODING', 'CHARSET',
-    //'COMPRESSION', 'OLDFILEUID', 'NEWFILEUID'
-    'testHeader0', 'testHeader1',
-  ];
+  const trimLine2 = (()=>{
+    const linePattern = /^\s*(.*)\s*$/;
 
-  for (const name of ofxHeaders) {
-    yield name.toUpperCase() + ':' + headerObj[name] + '\n';
-  }
-}
-function checkType(elm) {
-  const typeofElm = typeof elm;
+    return (linesStr) => {
+          const lines = linesStr.split('\n');
 
-  if (typeofElm === 'string') {
-    return 'string';
-  }
-  if (typeofElm === 'number') {
-    return 'number';
-  }
-  if (Array.isArray(elm)) {
-    return 'array';
-  }
-  if (typeofElm === 'object') {
-    return 'object';
-  }
-  throw new Error(`unkown Struct Elemnt Type:${typeofElm}`);
-}
+          return lines.map((line) => {
+            return line.replace(linePattern, '$1');
+          }).filter((line) => {
+            if (line ==='<!-- Not used -->') {
+              return false;
+            }
 
-function *makeBodyItr(elm) {
-  const elmType = checkType(elm);
+            return true;
+          })
+          .join('\n');
+        };
 
-  if (elmType === 'object') {
-    for (const key of Reflect.ownKeys(elm)) {
-      yield `<${key}>\n`;
-      yield* makeBodyItr(elm[key]);
-      yield `</${key}>\n`;
-    }
-  } else if (elmType === 'string') {
-    yield `${elm}\n`;
-  } else if (elmType === 'number') {
-    yield `${elm}\n`;
-  }
+  })();
 
-}
-
+/*
 function transText(options) {
   let counter = 0;
   const transStrm = new stream.Transform({
@@ -99,30 +75,12 @@ function transText(options) {
 
   return transStrm;
 }
-
-function *makeOfxItr(ofxInfo, transactionStrm) {
-
-  yield* makeHeaderItr(ofxInfo.header);
-  yield '\n';
-  yield* makeBodyItr({
-          'body': 'aaa',
-          'body2': {
-            'sub-body': 1230 + 4,
-          },
-        });
-
-  /* const ofxBody = {
-          body: transactionStrm
-        };
-        */
-  //const ofxHeaderItr;
-
-  //return streamUtil.joinStream([ofxHeaderStrm, newLine, bodyStrm]);
-  //return streamUtil.joinStream([ofxHeaderStrm, newLineStrm]);
-}
+*/
 
 describe('ofx', () => {
-  const sampleFolderPath = 'test/work_sample';
+  const sampleFolderPath = 'test/work_sample/';
+
+  /*
   const snbSampleCSVPath = sampleFolderPath + '/snb.csv',
         fieldList = [
           'date',
@@ -131,34 +89,93 @@ describe('ofx', () => {
           'income',
           'balance',
           'memo',
-        ];
+        ]
+        */
+    it('compare sample.ofx',()=> {
+      return co(function *() {
+        const ofxPath = sampleFolderPath + 'sample.ofx';
+        const ofxStrm = ofxUtil.makeOfxStream({
+            header: {
+              testHeader0: 'testheader',
+              testHeader1: 'xxxxx',
+            },
+            body: {}
+          });
+
+        const retData = yield streamUtil.readStreamPromise(ofxStrm);
+        const sampleData = yield streamUtil.readStreamPromise(fs.createReadStream(ofxPath));
+
+        console.log(retData);
+
+        expect(retData).is.equal(trimLine2(sampleData));
+
+      });
+    });
 
     it('construct OFX',()=> {
           return co(function *() {
-            const ofxItr = makeOfxItr({
+            const ofxItr = ofxUtil.makeOfxItr({
               header: {
                 testHeader0: 'testheader',
                 testHeader1: 'xxxxx',
+              },
+              body: {
+                'str': 'aaa',
+                'num': 55,
+                'dict': {
+                  'm':'v',
+                  'n':'u',
+                },
+                'arr': ['a', 'b'],
+                'dict-ad': {
+                  'arr': ['a'],
+                  'dict': {
+                      'X':'x'
+                  },
+                },
+                'arr-dict': [
+                  {
+                      'X':'x'
+                  },
+                  {
+                      'Y':'y'
+                  },
+                ],
               }
-            }, []);
+            });
+
             const rdata = yield streamUtil.readStreamPromise(
                           streamUtil.itrToRStrm(ofxItr), {
                             objectMode: false,
                           });
 
-            console.log(rdata); //eslint-disable-line no-console
+            // console.log(rdata); //eslint-disable-line no-console
             expect(rdata).is.equal(trimLine(`
                 #TESTHEADER0:testheader
                 #TESTHEADER1:xxxxx
                 #
-                #<body>
-                #aaa
-                #</body>
-                #<body2>
-                #<sub-body>
-                #1234
-                #</sub-body>
-                #</body2>
+                #<root>
+                #<str>aaa
+                #<num>55
+                #<dict>
+                #<m>v
+                #<n>u
+                #</dict>
+                #<arr>a
+                #<arr>b
+                #<dict-ad>
+                #<arr>a
+                #<dict>
+                #<X>x
+                #</dict>
+                #</dict-ad>
+                #<arr-dict>
+                #<X>x
+                #</arr-dict>
+                #<arr-dict>
+                #<Y>y
+                #</arr-dict>
+                #</root>
               `));
 
         });
