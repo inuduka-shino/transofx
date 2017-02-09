@@ -25,13 +25,21 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
   })();
 
   const trimLine2 = (()=>{
-    const linePattern = /(^|\n)([^\n$].*)/g;
+    const linePattern = /^\s*(.*)\s*$/;
 
     return (linesStr) => {
-          const val = linesStr
-                  .replace(linePattern, '[[[$2]]]\n');
+          const lines = linesStr.split('\n');
 
-          return val;
+          return lines.map((line) => {
+            return line.replace(linePattern, '$1');
+          }).filter((line) => {
+            if (line ==='<!-- Not used -->') {
+              return false;
+            }
+
+            return true;
+          })
+          .join('\n');
         };
 
   })();
@@ -86,7 +94,6 @@ describe('ofx', () => {
     it('compare sample.ofx',()=> {
       return co(function *() {
         const ofxPath = sampleFolderPath + 'sample.ofx';
-        console.log(typeof ofxUtil.makeOfxStream);
         const ofxStrm = ofxUtil.makeOfxStream({
             header: {
               testHeader0: 'testheader',
