@@ -91,7 +91,7 @@ describe('ofx', () => {
           'memo',
         ]
         */
-    it('compare sample.ofx',()=> {
+    it.skip('compare sample.ofx',()=> {
       return co(function *() {
         const ofxPath = sampleFolderPath + 'sample.ofx';
         const ofxStrm = ofxUtil.makeOfxStream({
@@ -105,7 +105,7 @@ describe('ofx', () => {
         const retData = yield streamUtil.readStreamPromise(ofxStrm);
         const sampleData = yield streamUtil.readStreamPromise(fs.createReadStream(ofxPath));
 
-        console.log(retData);
+        console.log(retData); //eslint-disable-line no-console
 
         expect(retData).is.equal(trimLine2(sampleData));
 
@@ -115,34 +115,35 @@ describe('ofx', () => {
     it('construct OFX',()=> {
           return co(function *() {
             const ofxItr = ofxUtil.makeOfxItr({
-              header: {
-                testHeader0: 'testheader',
-                testHeader1: 'xxxxx',
-              },
-              body: {
-                'str': 'aaa',
-                'num': 55,
-                'dict': {
-                  'm':'v',
-                  'n':'u',
-                },
-                'arr': ['a', 'b'],
-                'dict-ad': {
-                  'arr': ['a'],
-                  'dict': {
-                      'X':'x'
-                  },
-                },
-                'arr-dict': [
-                  {
-                      'X':'x'
-                  },
-                  {
-                      'Y':'y'
-                  },
-                ],
-              }
+              header: new Map([
+                ['testHeader0', 'testheader'],
+                ['testHeader1', 'xxxxx'],
+              ]),
+              body: new Map([
+                ['str', 'aaa'],
+                ['num', 55],
+                ['dict', new Map([
+                  ['m', 'v'],
+                  ['n', 'u'],
+                ])],
+                ['arr', ['a', 'b']],
+                ['dict-ad', new Map([
+                  ['arr', ['a']],
+                  ['dict', new Map([
+                      ['X', 'x']
+                  ])],
+                ])],
+                ['arr-dict', [
+                  new Map([
+                      ['X', 'x'],
+                  ]),
+                  new Map([
+                      ['Y', 'y'],
+                  ]),
+                ]],
+              ])
             });
+
 
             const rdata = yield streamUtil.readStreamPromise(
                           streamUtil.itrToRStrm(ofxItr), {
@@ -154,28 +155,28 @@ describe('ofx', () => {
                 #TESTHEADER0:testheader
                 #TESTHEADER1:xxxxx
                 #
-                #<root>
-                #<str>aaa
-                #<num>55
-                #<dict>
-                #<m>v
-                #<n>u
-                #</dict>
-                #<arr>a
-                #<arr>b
-                #<dict-ad>
-                #<arr>a
-                #<dict>
+                #<ROOT>
+                #<STR>aaa
+                #<NUM>55
+                #<DICT>
+                #<M>v
+                #<N>u
+                #</DICT>
+                #<ARR>a
+                #<ARR>b
+                #<DICT-AD>
+                #<ARR>a
+                #<DICT>
                 #<X>x
-                #</dict>
-                #</dict-ad>
-                #<arr-dict>
+                #</DICT>
+                #</DICT-AD>
+                #<ARR-DICT>
                 #<X>x
-                #</arr-dict>
-                #<arr-dict>
+                #</ARR-DICT>
+                #<ARR-DICT>
                 #<Y>y
-                #</arr-dict>
-                #</root>
+                #</ARR-DICT>
+                #</ROOT>
               `));
 
         });

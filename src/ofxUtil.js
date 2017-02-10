@@ -2,17 +2,11 @@
 
 const streamUtil = require('./streamUtil');
 
-function *makeHeaderItr(headerObj) {
-const ofxHeaders = [
-  //'OFXHEADER',
-  // 'DATA', 'VERSION', 'SECURITY', 'ENCODING', 'CHARSET',
-  //'COMPRESSION', 'OLDFILEUID', 'NEWFILEUID'
-  'testHeader0', 'testHeader1',
-];
+function *makeHeaderItr(headerMap) {
 
-for (const name of ofxHeaders) {
-  yield name.toUpperCase() + ':' + headerObj[name] + '\n';
-}
+  for (const [key, val] of headerMap) {
+    yield key.toUpperCase() + ':' + val + '\n';
+  }
 }
 function checkType(elm) {
 const typeofElm = typeof elm;
@@ -26,19 +20,20 @@ if (typeofElm === 'number') {
 if (Array.isArray(elm)) {
   return 'array';
 }
-if (typeofElm === 'object') {
-  return 'object';
+if (elm instanceof Map) {
+  return 'map';
 }
 throw new Error(`unkown Struct Elemnt Type:${typeofElm}`);
 }
 
-function *makeBodyItr(pKey, elm) {
-const elmType = checkType(elm);
+function *makeBodyItr(keyname, elm) {
+const elmType = checkType(elm),
+      pKey = keyname.toUpperCase();
 
-  if (elmType === 'object') {
+  if (elmType === 'map') {
     yield `<${pKey}>\n`;
-    for (const key of Reflect.ownKeys(elm)) {
-      yield* makeBodyItr(key, elm[key]);
+    for (const [key, val] of elm) {
+      yield* makeBodyItr(key, val);
     }
     yield `</${pKey}>\n`;
   } else if (elmType === 'array') {
