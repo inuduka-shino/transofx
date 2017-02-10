@@ -51,7 +51,7 @@ function *makeOfxItr(ofxInfo) {
 
   yield* makeHeaderItr(ofxInfo.header);
   yield '\n';
-  yield* makeBodyItr('root', ofxInfo.body);
+  yield* makeBodyItr('OFX', ofxInfo.body);
 
 }
 

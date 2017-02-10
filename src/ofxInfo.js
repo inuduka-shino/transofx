@@ -5,11 +5,12 @@ module.exports = {
     header: new Map([
         ['OFXHEADER', '100'],
         ['DATA', 'OFXSGML'],
-        ['VERSION', '103'],
+        ['VERSION', '102'],
         ['SECURITY', 'NONE'],
-        ['ENCODING', 'UTF-8'],
-        //['CHARSET', '1252'],
-        ['CHARSET', 'CSUNICODE'],
+        //*['ENCODING', 'UTF-8'],
+        ['ENCODING', 'USASCII'],
+        ['CHARSET', '1252'],
+        //*['CHARSET', 'CSUNICODE'],
         ['COMPRESSION', 'NONE'],
         ['OLDFILEUID', 'NONE'],
         ['NEWFILEUID', 'NONE']
