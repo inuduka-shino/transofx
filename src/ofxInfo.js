@@ -2,17 +2,18 @@
 /*eslint no-console: 0 */
 
 module.exports = {
-    header: {
-        OFXHEADER: '100',
-        DATA: 'OFXSGML',
-        VERSION: '103',
-        SECURITY: 'NONE',
-        ENCODING: 'UTF-8',
-        CHARSET:  'CSUNICODE', //'1252',
-        COMPRESSION: 'NONE',
-        OLDFILEUID: 'NONE',
-        NEWFILEUID: 'NONE'
-    },
+    header: new Map([
+        ['OFXHEADER', '100'],
+        ['DATA', 'OFXSGML'],
+        ['VERSION', '103'],
+        ['SECURITY', 'NONE'],
+        ['ENCODING', 'UTF-8'],
+        //['CHARSET', '1252'],
+        ['CHARSET', 'CSUNICODE'],
+        ['COMPRESSION', 'NONE'],
+        ['OLDFILEUID', 'NONE'],
+        ['NEWFILEUID', 'NONE']
+    ]),
 
     // ref: http://www.exactsoftware.com/docs/DocView.aspx?DocumentID=%7B6e02f9a5-ee40-4d2f-b8ea-4bee57825907%7D
     body: {

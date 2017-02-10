@@ -8,7 +8,9 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       //stream = require('stream'),
       streamUtil = require('../src/streamUtil');
 
-  const trimLine = (()=>{
+const ofxInfo = require('../src/ofxInfo');
+
+const trimLine = (()=>{
     const linePattern = /(\n|^)(\s*#)/g,
           firstLinePattern = /^\s*/,
           endLinePattern = /(\n|^)\s*$/;
@@ -91,15 +93,12 @@ describe('ofx', () => {
           'memo',
         ]
         */
-    it.skip('compare sample.ofx',()=> {
+    it('compare sample.ofx',()=> {
       return co(function *() {
         const ofxPath = sampleFolderPath + 'sample.ofx';
         const ofxStrm = ofxUtil.makeOfxStream({
-            header: {
-              testHeader0: 'testheader',
-              testHeader1: 'xxxxx',
-            },
-            body: {}
+            header: ofxInfo.header,
+            body: new Map([])
           });
 
         const retData = yield streamUtil.readStreamPromise(ofxStrm);
