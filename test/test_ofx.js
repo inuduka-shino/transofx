@@ -83,7 +83,7 @@ function transText(options) {
 */
 
 describe('ofx', () => {
-  const sampleFolderPath = 'test/work_sample/';
+  const sampleFolderPath = 'test/work2/';
 
   /*
   const snbSampleCSVPath = sampleFolderPath + '/snb.csv',
@@ -99,10 +99,12 @@ describe('ofx', () => {
     it('compare sample.ofx',()=> {
       //console.log(ofxInfo.body);
       //console.log(ofxInfo.body.SIGNONMSGSRSV1);
-      ofxInfo.body.SIGNONMSGSRSV1.SOnRs.DTServer = 'ddd';
+      ofxInfo.body.SIGNONMSGSRSV1.SONRS.DTSERVER = '20170212091105[+9:JST]';
+      ofxInfo.body.BANKMSGSRSV1.STMTTRNRS.STMTRS.BANKTRANLIST.DTSTART = '20170101000000[+9:JST]';
+      ofxInfo.body.BANKMSGSRSV1.STMTTRNRS.STMTRS.BANKTRANLIST.DTEND = '20170212235959[+9:JST]';
 
       return co(function *() {
-        const ofxPath = sampleFolderPath + 'aibgsjsw3121.ofx';
+        const ofxPath = sampleFolderPath + 'sample.ofx';
 
 
         const ofxStrm = ofxUtil.makeOfxStream({
@@ -113,7 +115,7 @@ describe('ofx', () => {
         const retData = yield streamUtil.readStreamPromise(ofxStrm);
         const sampleData = yield streamUtil.readStreamPromise(fs.createReadStream(ofxPath));
 
-        console.log(retData); //eslint-disable-line no-console
+        //console.log(retData); //eslint-disable-line no-console
 
         expect(retData).is.equal(trimLine2(sampleData));
 
