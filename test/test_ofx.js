@@ -96,7 +96,7 @@ describe('ofx', () => {
           'memo',
         ]
         */
-    it('compare sample.ofx',()=> {
+    it.skip('compare sample.ofx',()=> {
       //console.log(ofxInfo.body);
       //console.log(ofxInfo.body.SIGNONMSGSRSV1);
       ofxInfo.body.SIGNONMSGSRSV1.SONRS.DTSERVER = '20170212091105[+9:JST]';
@@ -121,6 +121,34 @@ describe('ofx', () => {
 
       });
     });
+
+    it('construct OFX with  stream Object',()=> {
+          return co(function *() {
+            const ofxItr = ofxUtil.makeOfxItr({
+              header: $(
+                ['testHeader1', 'testheader']
+              ),
+              body: $(
+                ['xx', 'aaa'],
+                ['str', 'aaa']
+              )
+            });
+
+            const rdata = yield streamUtil.readStreamPromise(
+                          streamUtil.itrToRStrm(ofxItr), {
+                            objectMode: false,
+                          });
+
+            // console.log(rdata); //eslint-disable-line no-console
+            expect(rdata).is.equal(trimLine(`
+                #testHeader1:testheader
+                #<OFX>
+                #<str>aaa
+                #</OFX>
+                `));
+
+          });
+        });
 
     it('construct OFX',()=> {
           return co(function *() {
