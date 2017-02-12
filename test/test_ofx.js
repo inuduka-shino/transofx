@@ -94,11 +94,17 @@ describe('ofx', () => {
         ]
         */
     it('compare sample.ofx',()=> {
+      console.log(ofxInfo.body);
+      console.log(ofxInfo.body.SIGNONMSGSRSV1);
+      ofxInfo.body.SIGNONMSGSRSV1.SOnRs.DTServer = 'ddd';
+
       return co(function *() {
-        const ofxPath = sampleFolderPath + 'sample.ofx';
+        const ofxPath = sampleFolderPath + 'aibgsjsw3121.ofx';
+
+
         const ofxStrm = ofxUtil.makeOfxStream({
             header: ofxInfo.header,
-            body: new Map([])
+            body: ofxInfo.body
           });
 
         const retData = yield streamUtil.readStreamPromise(ofxStrm);
@@ -118,6 +124,7 @@ describe('ofx', () => {
                 ['testHeader0', 'testheader'],
                 ['testHeader1', 'xxxxx'],
               ]),
+              separater: '\n',
               body: new Map([
                 ['str', 'aaa'],
                 ['num', 55],
@@ -154,7 +161,7 @@ describe('ofx', () => {
                 #TESTHEADER0:testheader
                 #TESTHEADER1:xxxxx
                 #
-                #<ROOT>
+                #<OFX>
                 #<STR>aaa
                 #<NUM>55
                 #<DICT>
@@ -175,7 +182,7 @@ describe('ofx', () => {
                 #<ARR-DICT>
                 #<Y>y
                 #</ARR-DICT>
-                #</ROOT>
+                #</OFX>
               `));
 
         });

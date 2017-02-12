@@ -50,7 +50,9 @@ const elmType = checkType(elm),
 function *makeOfxItr(ofxInfo) {
 
   yield* makeHeaderItr(ofxInfo.header);
-  yield '\n';
+  if (ofxInfo.separater) {
+    yield ofxInfo.separater;
+  }
   yield* makeBodyItr('OFX', ofxInfo.body);
 
 }

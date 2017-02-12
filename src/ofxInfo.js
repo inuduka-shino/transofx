@@ -7,17 +7,30 @@ module.exports = {
         ['DATA', 'OFXSGML'],
         ['VERSION', '102'],
         ['SECURITY', 'NONE'],
-        //*['ENCODING', 'UTF-8'],
-        ['ENCODING', 'USASCII'],
-        ['CHARSET', '1252'],
-        //*['CHARSET', 'CSUNICODE'],
+        //['ENCODING', 'USASCII'],
+        ['ENCODING', 'UTF-8'],
+        //['CHARSET', '1252'],
+        ['CHARSET', 'CSUNICODE'],
         ['COMPRESSION', 'NONE'],
         ['OLDFILEUID', 'NONE'],
         ['NEWFILEUID', 'NONE']
     ]),
-
+    //eslint-disable-next-line
     // ref: http://www.exactsoftware.com/docs/DocView.aspx?DocumentID=%7B6e02f9a5-ee40-4d2f-b8ea-4bee57825907%7D
-    body: {
+    body: new Map([
+      ['signOnMsgSrsV1', new Map([
+          ['SOnRs',new Map([
+            ['status', new Map([
+              ['code', 0],
+              ['severity', 'INFO'],
+            ])],
+            ['DTServer', 'YYYYMMDDhhmmss[+9:JST]'],
+          ])],
+        ])]
+    ]),
+ };
+
+/*
         SIGNONMSGSRSV1: {
             SONRS: {
                 STATUS: {
@@ -69,3 +82,4 @@ module.exports = {
 
     }
 };
+*/
