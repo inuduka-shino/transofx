@@ -13,7 +13,7 @@ describe('arrayで初期化',() => {
       ['C', 99]
     );
 
-    // expect(val).is.instanceof(commonUtility.OrderedDict);
+    expect(val).is.instanceof(commonUtility.OrderedDict);
     expect(val.A).is.equal('a');
     expect(val.B).is.equal('b');
     expect(val.C).is.equal(99);
