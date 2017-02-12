@@ -94,8 +94,8 @@ describe('ofx', () => {
         ]
         */
     it('compare sample.ofx',()=> {
-      console.log(ofxInfo.body);
-      console.log(ofxInfo.body.SIGNONMSGSRSV1);
+      //console.log(ofxInfo.body);
+      //console.log(ofxInfo.body.SIGNONMSGSRSV1);
       ofxInfo.body.SIGNONMSGSRSV1.SOnRs.DTServer = 'ddd';
 
       return co(function *() {
