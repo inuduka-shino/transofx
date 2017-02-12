@@ -4,11 +4,14 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       co = require('co'),
       fs = require('fs'),
       ofxUtil = require('../src/ofxUtil'),
+      commonUtility = require('../src/commonUtility'),
       //bankFile = require('../src/bankFileUtil'),
       //stream = require('stream'),
       streamUtil = require('../src/streamUtil');
 
 const ofxInfo = require('../src/ofxInfo');
+
+const $ = commonUtility.makeOrderedDict;
 
 const trimLine = (()=>{
     const linePattern = /(\n|^)(\s*#)/g,
@@ -120,36 +123,31 @@ describe('ofx', () => {
     it('construct OFX',()=> {
           return co(function *() {
             const ofxItr = ofxUtil.makeOfxItr({
-              header: new Map([
+              header: $(
                 ['testHeader0', 'testheader'],
-                ['testHeader1', 'xxxxx'],
-              ]),
+                ['testHeader1', 'xxxxx']
+              ),
               separater: '\n',
-              body: new Map([
+              body: $(
                 ['str', 'aaa'],
                 ['num', 55],
-                ['dict', new Map([
+                ['dict', $(
                   ['m', 'v'],
-                  ['n', 'u'],
-                ])],
+                  ['n', 'u']
+                )],
                 ['arr', ['a', 'b']],
-                ['dict-ad', new Map([
+                ['dict-ad', $(
                   ['arr', ['a']],
-                  ['dict', new Map([
-                      ['X', 'x']
-                  ])],
-                ])],
+                  ['dict', $(
+                      ['x', 'x']
+                  )]
+                )],
                 ['arr-dict', [
-                  new Map([
-                      ['X', 'x'],
-                  ]),
-                  new Map([
-                      ['Y', 'y'],
-                  ]),
-                ]],
-              ])
+                  $(['x', 'x']),
+                  $(['y', 'y']),
+                ]]
+              )
             });
-
 
             const rdata = yield streamUtil.readStreamPromise(
                           streamUtil.itrToRStrm(ofxItr), {
@@ -158,30 +156,30 @@ describe('ofx', () => {
 
             // console.log(rdata); //eslint-disable-line no-console
             expect(rdata).is.equal(trimLine(`
-                #TESTHEADER0:testheader
-                #TESTHEADER1:xxxxx
+                #testHeader0:testheader
+                #testHeader1:xxxxx
                 #
                 #<OFX>
-                #<STR>aaa
-                #<NUM>55
-                #<DICT>
-                #<M>v
-                #<N>u
-                #</DICT>
-                #<ARR>a
-                #<ARR>b
-                #<DICT-AD>
-                #<ARR>a
-                #<DICT>
-                #<X>x
-                #</DICT>
-                #</DICT-AD>
-                #<ARR-DICT>
-                #<X>x
-                #</ARR-DICT>
-                #<ARR-DICT>
-                #<Y>y
-                #</ARR-DICT>
+                #<str>aaa
+                #<num>55
+                #<dict>
+                #<m>v
+                #<n>u
+                #</dict>
+                #<arr>a
+                #<arr>b
+                #<dict-ad>
+                #<arr>a
+                #<dict>
+                #<x>x
+                #</dict>
+                #</dict-ad>
+                #<arr-dict>
+                #<x>x
+                #</arr-dict>
+                #<arr-dict>
+                #<y>y
+                #</arr-dict>
                 #</OFX>
               `));
 

@@ -4,10 +4,9 @@ function checkMemberName(name) {
   return name.indexOf('.') < 0;
 }
 
-class OrderedDict {
+function OrderedDict() {
   //pass
 }
-
 function makeOrderedDict(...initList) {
   const m = new Map(initList),
         inst = new OrderedDict();

@@ -1,11 +1,15 @@
 /*eslint-env node */
 
-const streamUtil = require('./streamUtil');
+const streamUtil = require('./streamUtil'),
+      commonUtility = require('./commonUtility');
+
+const OrderedDict = commonUtility.OrderedDict;
 
 function *makeHeaderItr(headerMap) {
 
   for (const [key, val] of headerMap) {
-    yield key.toUpperCase() + ':' + val + '\n';
+    //console.log(`header read:${key}-${val}\n`);
+    yield key + ':' + val + '\n';
   }
 }
 function checkType(elm) {
@@ -20,7 +24,7 @@ if (typeofElm === 'number') {
 if (Array.isArray(elm)) {
   return 'array';
 }
-if (elm instanceof Map) {
+if (elm instanceof OrderedDict) {
   return 'map';
 }
 throw new Error(`unkown Struct Elemnt Type:${typeofElm}`);
@@ -28,7 +32,7 @@ throw new Error(`unkown Struct Elemnt Type:${typeofElm}`);
 
 function *makeBodyItr(keyname, elm) {
 const elmType = checkType(elm),
-      pKey = keyname.toUpperCase();
+      pKey = keyname;
 
   if (elmType === 'map') {
     yield `<${pKey}>\n`;
