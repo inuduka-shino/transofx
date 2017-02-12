@@ -8,7 +8,9 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       //stream = require('stream'),
       streamUtil = require('../src/streamUtil');
 
-  const trimLine = (()=>{
+const ofxInfo = require('../src/ofxInfo');
+
+const trimLine = (()=>{
     const linePattern = /(\n|^)(\s*#)/g,
           firstLinePattern = /^\s*/,
           endLinePattern = /(\n|^)\s*$/;
@@ -92,20 +94,23 @@ describe('ofx', () => {
         ]
         */
     it('compare sample.ofx',()=> {
+      //console.log(ofxInfo.body);
+      //console.log(ofxInfo.body.SIGNONMSGSRSV1);
+      ofxInfo.body.SIGNONMSGSRSV1.SOnRs.DTServer = 'ddd';
+
       return co(function *() {
-        const ofxPath = sampleFolderPath + 'sample.ofx';
+        const ofxPath = sampleFolderPath + 'aibgsjsw3121.ofx';
+
+
         const ofxStrm = ofxUtil.makeOfxStream({
-            header: {
-              testHeader0: 'testheader',
-              testHeader1: 'xxxxx',
-            },
-            body: {}
+            header: ofxInfo.header,
+            body: ofxInfo.body
           });
 
         const retData = yield streamUtil.readStreamPromise(ofxStrm);
         const sampleData = yield streamUtil.readStreamPromise(fs.createReadStream(ofxPath));
 
-        console.log(retData);
+        console.log(retData); //eslint-disable-line no-console
 
         expect(retData).is.equal(trimLine2(sampleData));
 
@@ -115,34 +120,36 @@ describe('ofx', () => {
     it('construct OFX',()=> {
           return co(function *() {
             const ofxItr = ofxUtil.makeOfxItr({
-              header: {
-                testHeader0: 'testheader',
-                testHeader1: 'xxxxx',
-              },
-              body: {
-                'str': 'aaa',
-                'num': 55,
-                'dict': {
-                  'm':'v',
-                  'n':'u',
-                },
-                'arr': ['a', 'b'],
-                'dict-ad': {
-                  'arr': ['a'],
-                  'dict': {
-                      'X':'x'
-                  },
-                },
-                'arr-dict': [
-                  {
-                      'X':'x'
-                  },
-                  {
-                      'Y':'y'
-                  },
-                ],
-              }
+              header: new Map([
+                ['testHeader0', 'testheader'],
+                ['testHeader1', 'xxxxx'],
+              ]),
+              separater: '\n',
+              body: new Map([
+                ['str', 'aaa'],
+                ['num', 55],
+                ['dict', new Map([
+                  ['m', 'v'],
+                  ['n', 'u'],
+                ])],
+                ['arr', ['a', 'b']],
+                ['dict-ad', new Map([
+                  ['arr', ['a']],
+                  ['dict', new Map([
+                      ['X', 'x']
+                  ])],
+                ])],
+                ['arr-dict', [
+                  new Map([
+                      ['X', 'x'],
+                  ]),
+                  new Map([
+                      ['Y', 'y'],
+                  ]),
+                ]],
+              ])
             });
+
 
             const rdata = yield streamUtil.readStreamPromise(
                           streamUtil.itrToRStrm(ofxItr), {
@@ -154,28 +161,28 @@ describe('ofx', () => {
                 #TESTHEADER0:testheader
                 #TESTHEADER1:xxxxx
                 #
-                #<root>
-                #<str>aaa
-                #<num>55
-                #<dict>
-                #<m>v
-                #<n>u
-                #</dict>
-                #<arr>a
-                #<arr>b
-                #<dict-ad>
-                #<arr>a
-                #<dict>
+                #<OFX>
+                #<STR>aaa
+                #<NUM>55
+                #<DICT>
+                #<M>v
+                #<N>u
+                #</DICT>
+                #<ARR>a
+                #<ARR>b
+                #<DICT-AD>
+                #<ARR>a
+                #<DICT>
                 #<X>x
-                #</dict>
-                #</dict-ad>
-                #<arr-dict>
+                #</DICT>
+                #</DICT-AD>
+                #<ARR-DICT>
                 #<X>x
-                #</arr-dict>
-                #<arr-dict>
+                #</ARR-DICT>
+                #<ARR-DICT>
                 #<Y>y
-                #</arr-dict>
-                #</root>
+                #</ARR-DICT>
+                #</OFX>
               `));
 
         });
