@@ -3,6 +3,26 @@
 
 const stream = require('stream');
 
+function ObjToStrStream() {
+  const transStrm = new stream.Transform({
+    transform(chunk, encode, cb) {
+      this.push(chunk);
+
+      return cb();
+    },
+    flush: (cb) => {
+      return cb();
+    }
+  });
+
+  /*eslint-disable no-underscore-dangle*/
+  transStrm._readableState.objectMode = false;
+  transStrm._writableState.objectMode = true;
+
+  /*eslint-enable no-underscore-dangle*/
+  return transStrm;
+}
+
 function joinStream (streams) {
   const joinedStrm = new stream.Transform({
           transform(chunk, encode, cb) {
@@ -65,7 +85,6 @@ function readStreamPromise(strm, options={}) {
     });
   });
 }
-
 function filterStream(fileterFunc , initialValue) {
   let count = 0,
       previousValue = null;
@@ -90,6 +109,19 @@ function filterStream(fileterFunc , initialValue) {
       },
       flush: (cb) => {
           cb();
+      }
+  });
+}
+function passStream() {
+  return new stream.Transform({
+      objectMode: true,
+      transform(chunk, encode, cb) {
+        this.push(chunk);
+
+        return cb();
+      },
+      flush: (cb) => {
+        return cb();
       }
   });
 }
@@ -137,8 +169,10 @@ function itrToRStrm(itr) {
 }
 
 module.exports = {
+  ObjToStrStream,
   readStreamPromise,
   filterStream,
+  passStream,
   joinStream,
   itrToRStrm,
 };

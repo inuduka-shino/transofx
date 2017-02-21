@@ -3,11 +3,17 @@
 const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       co = require('co'),
       stream = require('stream'),
-      streamUtil = require('../src/streamUtil');
+      streamUtil = require('../src/streamUtil'),
+      {
+        makeOrderedDict,
+        OrderedDict,
+      } = require('../src/commonUtility');
+const $ = makeOrderedDict;
 
 // 構成objをObjectStream
 // 構成objStream を non-object stream
 
+/*
 const ofxObj = {
   'StrA': 'aaa',
   'NumB': 99,
@@ -21,6 +27,7 @@ const ofxObj = {
     },
   },
 };
+*/
 
 const trimLine = (()=>{
     const linePattern = /(\n|^)(\s*#)/g,
@@ -40,51 +47,72 @@ const trimLine = (()=>{
 
 function *values(arry) {
   for (const elm of arry) {
-    if (typeof elm === 'undefined') {
-      yield 'undefined';
-    }
     yield elm;
   }
 }
 
-function makeObjStream(itr) {
+function joinItretor(mainItr, joinItr) {
 
-  return new stream.Readable({
-    objectMode: true,
-    read() {
-      const result = itr.next();
+}
+function checkType(elm) {
+  const typeofElm = typeof elm;
 
-      if (result.done) {
-        this.push(null);
-      } else {
-        this.push(result.value);
-      }
-    }
-  });
+  if (typeofElm === 'string') {
+    return 'string';
+  }
+  if (typeofElm === 'number') {
+    return 'number';
+  }
+  if (Array.isArray(elm)) {
+    return 'array';
+  }
+  if (elm instanceof OrderedDict) {
+    return 'map';
+  }
+  throw new Error(`unkown Struct Elemnt Type:${typeofElm}`);
 }
 
-function tranObjStreamStream() {
-  const transStrm = new stream.Transform({
-    transform(chunk, encode, cb) {
-      this.push(chunk);
 
-      return cb();
-    },
-    flush: (cb) => {
-      return cb();
+function printStream(outStrm, pKey, pelm) {
+  const elmType = checkType(pelm);
+  console.log(elmType);
+  console.log(pelm);
+  if (elmType === 'string' || elmType === 'number') {
+    outStrm.write(`<${pKey}>:$pelm`);
+  } else if (elmType === 'array') {
+    for(const elm of pelm) {
+      printStream(outStrm, pKey, pelm)
     }
-  });
 
-  /*eslint-disable no-underscore-dangle*/
-  transStrm._readableState.objectMode = false;
-  transStrm._writableState.objectMode = true;
+  } else {
+    // pass
+  }
 
-  /*eslint-enable no-underscore-dangle*/
-  return transStrm;
 }
+function makeObjStream(ofxOrderedDict) {
+  const retStrm = streamUtil.ObjToStrStream();
+  printStream(retStrm, 'OFX', ofxOrderedDict);
+  return retStrm;
+}
+
 describe('object stream stream', ()=>{
-  it('test', () => {
-    const retObjStrm = makeObjStream(values(['aaa','bbb\n'])),
+  it('test one value', () => {
+    const retStrm = makeObjStream('value');
+
+    return co(function *() {
+      const rdata = yield streamUtil.readStreamPromise(retStrm);
+
+      expect(rdata).is.equal(trimLine(`
+        #aaabbb
+      `));
+    });
+  });
+
+  it.skip('test', () => {
+    const retObjStrm = makeObjStream($([
+            ['aaa', 'bbb'],
+            ['ccc', 'ddd'],
+          ])),
           retStrm = tranObjStreamStream();
 
     retObjStrm.pipe(retStrm);
