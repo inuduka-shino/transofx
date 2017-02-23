@@ -112,9 +112,9 @@ function filterStream(fileterFunc , initialValue) {
       }
   });
 }
-function passStream() {
+function passStream(objectMode = true) {
   return new stream.Transform({
-      objectMode: true,
+      objectMode,
       transform(chunk, encode, cb) {
         this.push(chunk);
 
