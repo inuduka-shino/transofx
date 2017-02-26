@@ -45,15 +45,6 @@ const trimLine = (()=>{
 
   })();
 
-function *values(arry) {
-  for (const elm of arry) {
-    yield elm;
-  }
-}
-
-function joinItretor(mainItr, joinItr) {
-
-}
 function checkType(elm) {
   const typeofElm = typeof elm;
 
@@ -75,7 +66,7 @@ function checkType(elm) {
 
 function orderedDictToStream(pKey, pelm) {
   const elmType = checkType(pelm),
-        outStrm = streamUtil.passStream(false);
+        outStrm = new stream.PassThrough();
 
   if (elmType === 'string' || elmType === 'number') {
     outStrm.write(`<${pKey}>${pelm}\n`);
@@ -137,8 +128,28 @@ describe('object stream stream', ()=>{
     expect(iArr.next().value).is.equal(4);
     expect(iArr.next().done).is.equal(true);
   });
+
+  it('iterator reduce', () => {
+    const arr = [3,1,4];
+
+
+    const ixArr = {};
+
+    ixArr[Symbol.iterator] = function () {
+      return arr[Symbol.iterator]();
+    };
+
+    console.log([].map.call(ixArr,(a) => a*a));
+
+    const v0 = arr.reduce((a,b) => a + b, 0),
+          v1 = Array.prototype.reduce.call(ixArr, (a,b) => a +b, 0);
+
+    expect(v1).is.equal(v0);
+
+  });
+
   it('test one value stream pre', () => {
-    const outStrm = streamUtil.passStream(false);
+    const outStrm = new stream.PassThrough();
 
     outStrm.write('aaa\n');
     outStrm.end();
@@ -180,7 +191,7 @@ describe('object stream stream', ()=>{
             ['aaa', 'bbb'],
             ['ccc', 'ddd'],
           ])),
-          retStrm = tranObjStreamStream();
+          retStrm = null; // tranObjStreamStream();
 
     retObjStrm.pipe(retStrm);
 
