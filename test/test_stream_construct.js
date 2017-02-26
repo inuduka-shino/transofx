@@ -81,9 +81,28 @@ function orderedDictToStream(pKey, pelm) {
     outStrm.write(`<${pKey}>${pelm}\n`);
     outStrm.end();
   } else if (elmType === 'array') {
-    for (const elm of pelm) {
-      //printStream(outStrm, pKey, pelm)
+
+    //outStrm.write(`---array:${pKey}\n`);
+/*    for (const elm of pelm) {
+      const elmStrm = orderedDictToStream(pKey, elm);
+
+      elmStrm.pipe(outStrm, {
+        end: false
+      });
+      outStrm.write('----elm:' + typeof elmStrm + '\n');
     }
+    outStrm.write(`----array:${pKey}\n`);
+    outStrm.end();*/
+    const elmStrm = orderedDictToStream(pKey, pelm[0]);
+
+    outStrm.write(`----array:${pKey}\n`);
+    elmStrm.pipe(outStrm, {
+      end: false
+    });
+    elmStrm.on('end', () =>{
+      outStrm.write(`----array end:${pKey}\n`);
+      outStrm.end();
+    });
 
   } else {
     throw new Error('bad Object');
@@ -96,6 +115,19 @@ function makeObjStream(ofxOrderedDict) {
 }
 
 describe('object stream stream', ()=>{
+  it('test array', () => {
+    const retStrm = makeObjStream(['v1','v2']);
+
+    return co(function *() {
+      const rdata = yield streamUtil.readStreamPromise(retStrm);
+
+      expect(rdata).is.equal(trimLine(`
+        #<OFX>v1
+        #<OFX>v2
+      `));
+    });
+  });
+
   it('array to iterator', () => {
     const arr = [3,1,4];
     const iArr = arr[Symbol.iterator]();
@@ -105,7 +137,6 @@ describe('object stream stream', ()=>{
     expect(iArr.next().value).is.equal(4);
     expect(iArr.next().done).is.equal(true);
   });
-
   it('test one value stream pre', () => {
     const outStrm = streamUtil.passStream(false);
 
@@ -131,7 +162,6 @@ describe('object stream stream', ()=>{
       `));
     });
   });
-
   it('test one value', () => {
     const retStrm = makeObjStream('value');
 
@@ -143,17 +173,7 @@ describe('object stream stream', ()=>{
       `));
     });
   });
-  it('test array', () => {
-    const retStrm = makeObjStream(['v1','v2']);
 
-    return co(function *() {
-      const rdata = yield streamUtil.readStreamPromise(retStrm);
-
-      expect(rdata).is.equal(trimLine(`
-        #aaabbb
-      `));
-    });
-  });
 
   it.skip('test', () => {
     const retObjStrm = makeObjStream($([
