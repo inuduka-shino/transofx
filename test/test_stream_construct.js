@@ -74,25 +74,24 @@ function orderedDictToStream(pKey, pelm) {
   } else if (elmType === 'array') {
 
     //outStrm.write(`---array:${pKey}\n`);
-/*    for (const elm of pelm) {
-      const elmStrm = orderedDictToStream(pKey, elm);
-
-      elmStrm.pipe(outStrm, {
-        end: false
+    pelm.reduce((prevPromise, elm) => {
+      const cStrm = orderedDictToStream(pKey, elm);
+      prevPromise.then(() =>{
+        cStrm.pipe(outStrm, {
+          end: false
+        });
       });
-      outStrm.write('----elm:' + typeof elmStrm + '\n');
-    }
-    outStrm.write(`----array:${pKey}\n`);
-    outStrm.end();*/
-    const elmStrm = orderedDictToStream(pKey, pelm[0]);
 
-    outStrm.write(`----array:${pKey}\n`);
-    elmStrm.pipe(outStrm, {
-      end: false
-    });
-    elmStrm.on('end', () =>{
-      outStrm.write(`----array end:${pKey}\n`);
-      outStrm.end();
+      return new Promise((resolve, reject)=>{
+        cStrm.on('end', ()=>{
+          resolve();
+        });
+        cStrm.on('error', (err)=>{
+          reject(err);
+        });
+      });
+    },Promise.resolve()).then(()=>{
+        outStrm.end();
     });
 
   } else {
@@ -127,25 +126,6 @@ describe('object stream stream', ()=>{
     expect(iArr.next().value).is.equal(1);
     expect(iArr.next().value).is.equal(4);
     expect(iArr.next().done).is.equal(true);
-  });
-
-  it('iterator reduce', () => {
-    const arr = [3,1,4];
-
-
-    const ixArr = {};
-
-    ixArr[Symbol.iterator] = function () {
-      return arr[Symbol.iterator]();
-    };
-
-    console.log([].map.call(ixArr,(a) => a*a));
-
-    const v0 = arr.reduce((a,b) => a + b, 0),
-          v1 = Array.prototype.reduce.call(ixArr, (a,b) => a +b, 0);
-
-    expect(v1).is.equal(v0);
-
   });
 
   it('test one value stream pre', () => {
