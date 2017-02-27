@@ -60,6 +60,9 @@ function checkType(elm) {
   if (elm instanceof OrderedDict) {
     return 'map';
   }
+  if (elm instanceof Map) {
+    return 'map';
+  }
   throw new Error(`unkown Struct Elemnt Type:${typeofElm}`);
 }
 
@@ -72,10 +75,9 @@ function orderedDictToStream(pKey, pelm) {
     outStrm.write(`<${pKey}>${pelm}\n`);
     outStrm.end();
   } else if (elmType === 'array') {
-
-    //outStrm.write(`---array:${pKey}\n`);
     pelm.reduce((prevPromise, elm) => {
       const cStrm = orderedDictToStream(pKey, elm);
+
       prevPromise.then(() =>{
         cStrm.pipe(outStrm, {
           end: false
@@ -93,10 +95,34 @@ function orderedDictToStream(pKey, pelm) {
     },Promise.resolve()).then(()=>{
         outStrm.end();
     });
+  } else if (elmType === 'map') {
+    outStrm.write(`<${pKey}>\n`);
+    let waitClose = Promise.resolve();
+    for (const elm of pelm) {
+      const cStrm = orderedDictToStream(elm[0], elm[1]);
+      waitClose.then(() =>{
+        cStrm.pipe(outStrm, {
+          end: false
+        });
+      });
 
-  } else {
-    throw new Error('bad Object');
-  }
+    }
+
+      return new Promise((resolve, reject)=>{
+        cStrm.on('end', ()=>{
+          resolve();
+        });
+        cStrm.on('error', (err)=>{
+          reject(err);
+        });
+      });
+  },Promise.resolve()).then(()=>{
+      outStrm.write(`</${pKey}>\n`);
+      outStrm.end();
+  });
+} else {
+  throw new Error('bad Object');
+}
 
   return outStrm;
 }
@@ -105,6 +131,26 @@ function makeObjStream(ofxOrderedDict) {
 }
 
 describe('object stream stream', ()=>{
+  it.skip('common test map', () => {
+    const m = new Map([['k', 'v'],['x', 'y']]);
+    console.log(m);
+    for (const x of m) {
+      console.log(x);
+    }
+  });
+  it('test dict', () => {
+    const retStrm = makeObjStream(new Map([['key','val']]));
+
+    return co(function *() {
+      const rdata = yield streamUtil.readStreamPromise(retStrm);
+
+      expect(rdata).is.equal(trimLine(`
+        #<OFX>
+        #<key>val
+        #</OFX>
+      `));
+    });
+  });
   it('test array', () => {
     const retStrm = makeObjStream(['v1','v2']);
 
