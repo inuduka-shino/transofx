@@ -45,6 +45,7 @@ const trimLine = (()=>{
 
   })();
 
+//eslint-disable-next-line max-statements
 function checkType(elm) {
   const typeofElm = typeof elm;
 
@@ -66,7 +67,7 @@ function checkType(elm) {
   throw new Error(`unkown Struct Elemnt Type:${typeofElm}`);
 }
 
-
+//eslint-disable-next-line max-statements
 function orderedDictToStream(pKey, pelm) {
   const elmType = checkType(pelm),
         outStrm = new stream.PassThrough();
