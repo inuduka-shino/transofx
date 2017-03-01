@@ -4,11 +4,14 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       co = require('co'),
       fs = require('fs'),
       ofxUtil = require('../src/ofxUtil'),
+      commonUtility = require('../src/commonUtility'),
       //bankFile = require('../src/bankFileUtil'),
       //stream = require('stream'),
       streamUtil = require('../src/streamUtil');
 
 const ofxInfo = require('../src/ofxInfo');
+
+const $ = commonUtility.makeOrderedDict;
 
 const trimLine = (()=>{
     const linePattern = /(\n|^)(\s*#)/g,
@@ -80,7 +83,7 @@ function transText(options) {
 */
 
 describe('ofx', () => {
-  const sampleFolderPath = 'test/work_sample/';
+  const sampleFolderPath = 'test/work2/';
 
   /*
   const snbSampleCSVPath = sampleFolderPath + '/snb.csv',
@@ -93,13 +96,15 @@ describe('ofx', () => {
           'memo',
         ]
         */
-    it('compare sample.ofx',()=> {
+    it.skip('compare sample.ofx',()=> {
       //console.log(ofxInfo.body);
       //console.log(ofxInfo.body.SIGNONMSGSRSV1);
-      ofxInfo.body.SIGNONMSGSRSV1.SOnRs.DTServer = 'ddd';
+      ofxInfo.body.SIGNONMSGSRSV1.SONRS.DTSERVER = '20170212091105[+9:JST]';
+      ofxInfo.body.BANKMSGSRSV1.STMTTRNRS.STMTRS.BANKTRANLIST.DTSTART = '20170101000000[+9:JST]';
+      ofxInfo.body.BANKMSGSRSV1.STMTTRNRS.STMTRS.BANKTRANLIST.DTEND = '20170212235959[+9:JST]';
 
       return co(function *() {
-        const ofxPath = sampleFolderPath + 'aibgsjsw3121.ofx';
+        const ofxPath = sampleFolderPath + 'sample.ofx';
 
 
         const ofxStrm = ofxUtil.makeOfxStream({
@@ -110,46 +115,24 @@ describe('ofx', () => {
         const retData = yield streamUtil.readStreamPromise(ofxStrm);
         const sampleData = yield streamUtil.readStreamPromise(fs.createReadStream(ofxPath));
 
-        console.log(retData); //eslint-disable-line no-console
+        //console.log(retData); //eslint-disable-line no-console
 
         expect(retData).is.equal(trimLine2(sampleData));
 
       });
     });
 
-    it('construct OFX',()=> {
+    it('construct OFX with  stream Object',()=> {
           return co(function *() {
             const ofxItr = ofxUtil.makeOfxItr({
-              header: new Map([
-                ['testHeader0', 'testheader'],
-                ['testHeader1', 'xxxxx'],
-              ]),
-              separater: '\n',
-              body: new Map([
-                ['str', 'aaa'],
-                ['num', 55],
-                ['dict', new Map([
-                  ['m', 'v'],
-                  ['n', 'u'],
-                ])],
-                ['arr', ['a', 'b']],
-                ['dict-ad', new Map([
-                  ['arr', ['a']],
-                  ['dict', new Map([
-                      ['X', 'x']
-                  ])],
-                ])],
-                ['arr-dict', [
-                  new Map([
-                      ['X', 'x'],
-                  ]),
-                  new Map([
-                      ['Y', 'y'],
-                  ]),
-                ]],
-              ])
+              header: $(
+                ['testHeader1', 'testheader']
+              ),
+              body: $(
+                ['xx', 'aaa'],
+                ['str', 'aaa']
+              )
             });
-
 
             const rdata = yield streamUtil.readStreamPromise(
                           streamUtil.itrToRStrm(ofxItr), {
@@ -158,30 +141,75 @@ describe('ofx', () => {
 
             // console.log(rdata); //eslint-disable-line no-console
             expect(rdata).is.equal(trimLine(`
-                #TESTHEADER0:testheader
-                #TESTHEADER1:xxxxx
+                #testHeader1:testheader
+                #<OFX>
+                #<str>aaa
+                #</OFX>
+                `));
+
+          });
+        });
+
+    it('construct OFX',()=> {
+          return co(function *() {
+            const ofxItr = ofxUtil.makeOfxItr({
+              header: $(
+                ['testHeader0', 'testheader'],
+                ['testHeader1', 'xxxxx']
+              ),
+              separater: '\n',
+              body: $(
+                ['str', 'aaa'],
+                ['num', 55],
+                ['dict', $(
+                  ['m', 'v'],
+                  ['n', 'u']
+                )],
+                ['arr', ['a', 'b']],
+                ['dict-ad', $(
+                  ['arr', ['a']],
+                  ['dict', $(
+                      ['x', 'x']
+                  )]
+                )],
+                ['arr-dict', [
+                  $(['x', 'x']),
+                  $(['y', 'y']),
+                ]]
+              )
+            });
+
+            const rdata = yield streamUtil.readStreamPromise(
+                          streamUtil.itrToRStrm(ofxItr), {
+                            objectMode: false,
+                          });
+
+            // console.log(rdata); //eslint-disable-line no-console
+            expect(rdata).is.equal(trimLine(`
+                #testHeader0:testheader
+                #testHeader1:xxxxx
                 #
                 #<OFX>
-                #<STR>aaa
-                #<NUM>55
-                #<DICT>
-                #<M>v
-                #<N>u
-                #</DICT>
-                #<ARR>a
-                #<ARR>b
-                #<DICT-AD>
-                #<ARR>a
-                #<DICT>
-                #<X>x
-                #</DICT>
-                #</DICT-AD>
-                #<ARR-DICT>
-                #<X>x
-                #</ARR-DICT>
-                #<ARR-DICT>
-                #<Y>y
-                #</ARR-DICT>
+                #<str>aaa
+                #<num>55
+                #<dict>
+                #<m>v
+                #<n>u
+                #</dict>
+                #<arr>a
+                #<arr>b
+                #<dict-ad>
+                #<arr>a
+                #<dict>
+                #<x>x
+                #</dict>
+                #</dict-ad>
+                #<arr-dict>
+                #<x>x
+                #</arr-dict>
+                #<arr-dict>
+                #<y>y
+                #</arr-dict>
                 #</OFX>
               `));
 
