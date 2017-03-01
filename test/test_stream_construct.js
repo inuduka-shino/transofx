@@ -105,21 +105,16 @@ function orderedDictToStream(pKey, pelm) {
           end: false
         });
       });
-
-    }
-
-      return new Promise((resolve, reject)=>{
-        cStrm.on('end', ()=>{
+      waitClose = new Promise((resolve) => {
+        cStrm.on('end', () => {
           resolve();
         });
-        cStrm.on('error', (err)=>{
-          reject(err);
-        });
       });
-  },Promise.resolve()).then(()=>{
-      outStrm.write(`</${pKey}>\n`);
-      outStrm.end();
-  });
+    }
+    waitClose.then(()=>{
+        outStrm.write(`</${pKey}>\n`);
+        outStrm.end();
+    });
 } else {
   throw new Error('bad Object');
 }
@@ -139,7 +134,7 @@ describe('object stream stream', ()=>{
     }
   });
   it('test dict', () => {
-    const retStrm = makeObjStream(new Map([['key','val']]));
+    const retStrm = makeObjStream(new Map([['key','val'],['key2','val2']]));
 
     return co(function *() {
       const rdata = yield streamUtil.readStreamPromise(retStrm);
@@ -147,6 +142,7 @@ describe('object stream stream', ()=>{
       expect(rdata).is.equal(trimLine(`
         #<OFX>
         #<key>val
+        #<key2>val2
         #</OFX>
       `));
     });
