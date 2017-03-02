@@ -67,6 +67,54 @@ function checkType(elm) {
   throw new Error(`unkown Struct Elemnt Type:${typeofElm}`);
 }
 
+//eslint-disable-next-line max-params
+function odsMap(pKey, pelm, outStrm, orderedDictToStream) {
+  outStrm.write(`<${pKey}>\n`);
+  let waitClose = Promise.resolve();
+
+  for (const elm of pelm) {
+    const cStrm = orderedDictToStream(elm[0], elm[1]);
+
+    waitClose.then(() =>{
+      cStrm.pipe(outStrm, {
+        end: false
+      });
+    });
+    waitClose = new Promise((resolve) => {
+      cStrm.on('end', () => {
+        resolve();
+      });
+    });
+  }
+  waitClose.then(()=>{
+      outStrm.write(`</${pKey}>\n`);
+      outStrm.end();
+  });
+}
+//eslint-disable-next-line max-params
+function odsArray(pKey, pelm, outStrm, orderedDictToStream) {
+  pelm.reduce((prevPromise, elm) => {
+    const cStrm = orderedDictToStream(pKey, elm);
+
+    prevPromise.then(() =>{
+      cStrm.pipe(outStrm, {
+        end: false
+      });
+    });
+
+    return new Promise((resolve, reject)=>{
+      cStrm.on('end', ()=>{
+        resolve();
+      });
+      cStrm.on('error', (err)=>{
+        reject(err);
+      });
+    });
+  },Promise.resolve()).then(()=>{
+      outStrm.end();
+  });
+}
+
 //eslint-disable-next-line max-statements
 function orderedDictToStream(pKey, pelm) {
   const elmType = checkType(pelm),
@@ -76,46 +124,9 @@ function orderedDictToStream(pKey, pelm) {
     outStrm.write(`<${pKey}>${pelm}\n`);
     outStrm.end();
   } else if (elmType === 'array') {
-    pelm.reduce((prevPromise, elm) => {
-      const cStrm = orderedDictToStream(pKey, elm);
-
-      prevPromise.then(() =>{
-        cStrm.pipe(outStrm, {
-          end: false
-        });
-      });
-
-      return new Promise((resolve, reject)=>{
-        cStrm.on('end', ()=>{
-          resolve();
-        });
-        cStrm.on('error', (err)=>{
-          reject(err);
-        });
-      });
-    },Promise.resolve()).then(()=>{
-        outStrm.end();
-    });
+    odsArray(pKey, pelm, outStrm, orderedDictToStream);
   } else if (elmType === 'map') {
-    outStrm.write(`<${pKey}>\n`);
-    let waitClose = Promise.resolve();
-    for (const elm of pelm) {
-      const cStrm = orderedDictToStream(elm[0], elm[1]);
-      waitClose.then(() =>{
-        cStrm.pipe(outStrm, {
-          end: false
-        });
-      });
-      waitClose = new Promise((resolve) => {
-        cStrm.on('end', () => {
-          resolve();
-        });
-      });
-    }
-    waitClose.then(()=>{
-        outStrm.write(`</${pKey}>\n`);
-        outStrm.end();
-    });
+    odsMap(pKey, pelm, outStrm, orderedDictToStream);
 } else {
   throw new Error('bad Object');
 }
@@ -127,13 +138,6 @@ function makeObjStream(ofxOrderedDict) {
 }
 
 describe('object stream stream', ()=>{
-  it.skip('common test map', () => {
-    const m = new Map([['k', 'v'],['x', 'y']]);
-    console.log(m);
-    for (const x of m) {
-      console.log(x);
-    }
-  });
   it('test dict', () => {
     const retStrm = makeObjStream(new Map([['key','val'],['key2','val2']]));
 
