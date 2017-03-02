@@ -64,9 +64,29 @@ function checkType(elm) {
   if (elm instanceof Map) {
     return 'map';
   }
+  if (elm instanceof stream.Readable) {
+    return 'stream';
+  }
   throw new Error(`unkown Struct Elemnt Type:${typeofElm}`);
 }
 
+//eslint-disable-next-line max-params
+function odsObjStrm(pKey, objStrm, outStrm, orderedDictToStream) {
+
+  objStrm.on('data', (elm) =>{
+    const cStrm = orderedDictToStream(pKey, elm);
+
+    objStrm.pause();
+    cStrm.pipe(outStrm, {end:false}); //eslint-disable-line object-curly-newline
+    cStrm.on('end', () => {
+      objStrm.resume();
+    });
+  });
+
+  objStrm.on('end', () =>{
+    outStrm.end();
+  });
+}
 //eslint-disable-next-line max-params
 function odsMap(pKey, pelm, outStrm, orderedDictToStream) {
   outStrm.write(`<${pKey}>\n`);
@@ -127,6 +147,8 @@ function orderedDictToStream(pKey, pelm) {
     odsArray(pKey, pelm, outStrm, orderedDictToStream);
   } else if (elmType === 'map') {
     odsMap(pKey, pelm, outStrm, orderedDictToStream);
+  } else if (elmType === 'stream') {
+    odsObjStrm(pKey, pelm, outStrm, orderedDictToStream);
 } else {
   throw new Error('bad Object');
 }
@@ -151,6 +173,32 @@ describe('object stream stream', ()=>{
         #</OFX>
       `));
     });
+  });
+  it('test object stream', () => {
+    const vals = [1,2,3];
+    let idx = vals.length;
+
+    const testStream = new stream.Readable({
+              read () {
+                if (idx === 0) {
+                  this.push(null);
+                } else {
+                  idx -= 1;
+                  this.push(vals[idx]);
+                }
+              }
+            });
+
+      const retStrm = makeObjStream(testStream);
+
+      return co(function *() {
+        const rdata = yield streamUtil.readStreamPromise(retStrm);
+
+        expect(rdata).is.equal(trimLine(`
+          #<OFX>v1
+          #<OFX>v2
+        `));
+      });
   });
   it('test array', () => {
     const retStrm = makeObjStream(['v1','v2']);
