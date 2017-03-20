@@ -67,12 +67,20 @@ function checkType(elm) {
   if (elm instanceof stream.Readable) {
     return 'stream';
   }
-  throw new Error(`unkown Struct Elemnt Type:${typeofElm}`);
+  throw new Error(`unkown Struct Elemnt Type:${typeofElm}:${elm}`);
 }
 
 //eslint-disable-next-line max-params
 function odsObjStrm(pKey, objStrm, outStrm, orderedDictToStream) {
+  let objStrmEnd = false;
 
+  // 最後のデータは以下の順のイベントが起きる
+  // (1) ObjStrm:data
+  // (2) ObjStrm:end
+  // (3) cStrm:end
+  objStrm.on('end', () =>{
+    objStrmEnd = true;
+  });
   objStrm.on('data', (elm) =>{
     const cStrm = orderedDictToStream(pKey, elm);
 
@@ -80,12 +88,12 @@ function odsObjStrm(pKey, objStrm, outStrm, orderedDictToStream) {
     cStrm.pipe(outStrm, {end:false}); //eslint-disable-line object-curly-newline
     cStrm.on('end', () => {
       objStrm.resume();
+      if (objStrmEnd) {
+        outStrm.end();
+      }
     });
   });
 
-  objStrm.on('end', () =>{
-    outStrm.end();
-  });
 }
 //eslint-disable-next-line max-params
 function odsMap(pKey, pelm, outStrm, orderedDictToStream) {
@@ -174,11 +182,13 @@ describe('object stream stream', ()=>{
       `));
     });
   });
+
   it('test object stream', () => {
-    const vals = [1,2,3];
+    const vals = [1,'v2','v3'].reverse();
     let idx = vals.length;
 
     const testStream = new stream.Readable({
+              objectMode: true,
               read () {
                 if (idx === 0) {
                   this.push(null);
@@ -195,11 +205,13 @@ describe('object stream stream', ()=>{
         const rdata = yield streamUtil.readStreamPromise(retStrm);
 
         expect(rdata).is.equal(trimLine(`
-          #<OFX>v1
+          #<OFX>1
           #<OFX>v2
+          #<OFX>v3
         `));
       });
   });
+
   it('test array', () => {
     const retStrm = makeObjStream(['v1','v2']);
 
