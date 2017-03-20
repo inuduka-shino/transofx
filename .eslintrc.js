@@ -79,7 +79,7 @@ module.exports = {
                 "before": true
             }
         ],
-        "line-comment-position": "warn",
+        "line-comment-position": "off",
         "linebreak-style": [
             "error",
             "unix"
