@@ -5,29 +5,9 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       stream = require('stream'),
       streamUtil = require('../src/streamUtil'),
       {
-        makeOrderedDict,
-        OrderedDict,
-      } = require('../src/commonUtility');
-const $ = makeOrderedDict;
-
-// 構成objをObjectStream
-// 構成objStream を non-object stream
-
-/*
-const ofxObj = {
-  'StrA': 'aaa',
-  'NumB': 99,
-  'ArrayC': ['A','B','C'],
-  'objD': {
-    'memA': 'aaa',
-    'memB': ['aaa','ccc'],
-    'memC': {
-      'memCC': 'xxx',
-      'memCD': 'yyy',
-    },
-  },
-};
-*/
+        orderedDictToStream,
+        makeObjStream,
+      } = require('../src/ofx_stream_construct');
 
 const trimLine = (()=>{
     const linePattern = /(\n|^)(\s*#)/g,
@@ -45,94 +25,39 @@ const trimLine = (()=>{
 
   })();
 
-function checkType(elm) {
-  const typeofElm = typeof elm;
-
-  if (typeofElm === 'string') {
-    return 'string';
-  }
-  if (typeofElm === 'number') {
-    return 'number';
-  }
-  if (Array.isArray(elm)) {
-    return 'array';
-  }
-  if (elm instanceof OrderedDict) {
-    return 'map';
-  }
-  if (elm instanceof Map) {
-    return 'map';
-  }
-  throw new Error(`unkown Struct Elemnt Type:${typeofElm}`);
-}
-
-
-function orderedDictToStream(pKey, pelm) {
-  const elmType = checkType(pelm),
-        outStrm = new stream.PassThrough();
-
-  if (elmType === 'string' || elmType === 'number') {
-    outStrm.write(`<${pKey}>${pelm}\n`);
-    outStrm.end();
-  } else if (elmType === 'array') {
-    pelm.reduce((prevPromise, elm) => {
-      const cStrm = orderedDictToStream(pKey, elm);
-
-      prevPromise.then(() =>{
-        cStrm.pipe(outStrm, {
-          end: false
-        });
-      });
-
-      return new Promise((resolve, reject)=>{
-        cStrm.on('end', ()=>{
-          resolve();
-        });
-        cStrm.on('error', (err)=>{
-          reject(err);
-        });
-      });
-    },Promise.resolve()).then(()=>{
-        outStrm.end();
-    });
-  } else if (elmType === 'map') {
-    outStrm.write(`<${pKey}>\n`);
-    let waitClose = Promise.resolve();
-    for (const elm of pelm) {
-      const cStrm = orderedDictToStream(elm[0], elm[1]);
-      waitClose.then(() =>{
-        cStrm.pipe(outStrm, {
-          end: false
-        });
-      });
-      waitClose = new Promise((resolve) => {
-        cStrm.on('end', () => {
-          resolve();
-        });
-      });
-    }
-    waitClose.then(()=>{
-        outStrm.write(`</${pKey}>\n`);
-        outStrm.end();
-    });
-} else {
-  throw new Error('bad Object');
-}
-
-  return outStrm;
-}
-function makeObjStream(ofxOrderedDict) {
-  return orderedDictToStream('OFX', ofxOrderedDict);
-}
-
 describe('object stream stream', ()=>{
-  it.skip('common test map', () => {
-    const m = new Map([['k', 'v'],['x', 'y']]);
-    console.log(m);
-    for (const x of m) {
-      console.log(x);
-    }
+  it('test complex', () => {
+    const retStrm = makeObjStream(new Map([
+      ['num', 1234],
+      ['str','val'],
+      ['array',['val1', 'val2']],
+      ['obj',new Map([
+        ['mem1', 999],
+        ['mem2', '999A'],
+        ['mem3', ['mem3val1','mem3val2']],
+      ])],
+    ]));
+
+    return co(function *() {
+      const rdata = yield streamUtil.readStreamPromise(retStrm);
+
+      expect(rdata).is.equal(trimLine(`
+        #<OFX>
+        #<num>1234
+        #<str>val
+        #<array>val1
+        #<array>val2
+        #<obj>
+        #<mem1>999
+        #<mem2>999A
+        #<mem3>mem3val1
+        #<mem3>mem3val2
+        #</obj>
+        #</OFX>
+      `));
+    });
   });
+
   it('test dict', () => {
     const retStrm = makeObjStream(new Map([['key','val'],['key2','val2']]));
 
@@ -147,6 +72,36 @@ describe('object stream stream', ()=>{
       `));
     });
   });
+
+  it('test object stream', () => {
+    const vals = [1,'v2','v3'].reverse();
+    let idx = vals.length;
+
+    const testStream = new stream.Readable({
+              objectMode: true,
+              read () {
+                if (idx === 0) {
+                  this.push(null);
+                } else {
+                  idx -= 1;
+                  this.push(vals[idx]);
+                }
+              }
+            });
+
+      const retStrm = makeObjStream(testStream);
+
+      return co(function *() {
+        const rdata = yield streamUtil.readStreamPromise(retStrm);
+
+        expect(rdata).is.equal(trimLine(`
+          #<OFX>1
+          #<OFX>v2
+          #<OFX>v3
+        `));
+      });
+  });
+
   it('test array', () => {
     const retStrm = makeObjStream(['v1','v2']);
 
@@ -203,25 +158,6 @@ describe('object stream stream', ()=>{
 
       expect(rdata).is.equal(trimLine(`
         #<OFX>value
-      `));
-    });
-  });
-
-
-  it.skip('test', () => {
-    const retObjStrm = makeObjStream($([
-            ['aaa', 'bbb'],
-            ['ccc', 'ddd'],
-          ])),
-          retStrm = null; // tranObjStreamStream();
-
-    retObjStrm.pipe(retStrm);
-
-    return co(function *() {
-      const rdata = yield streamUtil.readStreamPromise(retStrm);
-
-      expect(rdata).is.equal(trimLine(`
-        #aaabbb
       `));
     });
   });
