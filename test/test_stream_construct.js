@@ -168,6 +168,38 @@ function makeObjStream(ofxOrderedDict) {
 }
 
 describe('object stream stream', ()=>{
+  it('test complex', () => {
+    const retStrm = makeObjStream(new Map([
+      ['num', 1234],
+      ['str','val'],
+      ['array',['val1', 'val2']],
+      ['obj',new Map([
+        ['mem1', 999],
+        ['mem2', '999A'],
+        ['mem3', ['mem3val1','mem3val2']],
+      ])],
+    ]));
+
+    return co(function *() {
+      const rdata = yield streamUtil.readStreamPromise(retStrm);
+
+      expect(rdata).is.equal(trimLine(`
+        #<OFX>
+        #<num>1234
+        #<str>val
+        #<array>val1
+        #<array>val2
+        #<obj>
+        #<mem1>999
+        #<mem2>999A
+        #<mem3>mem3val1
+        #<mem3>mem3val2
+        #</obj>
+        #</OFX>
+      `));
+    });
+  });
+
   it('test dict', () => {
     const retStrm = makeObjStream(new Map([['key','val'],['key2','val2']]));
 
@@ -268,25 +300,6 @@ describe('object stream stream', ()=>{
 
       expect(rdata).is.equal(trimLine(`
         #<OFX>value
-      `));
-    });
-  });
-
-
-  it.skip('test', () => {
-    const retObjStrm = makeObjStream($([
-            ['aaa', 'bbb'],
-            ['ccc', 'ddd'],
-          ])),
-          retStrm = null; // tranObjStreamStream();
-
-    retObjStrm.pipe(retStrm);
-
-    return co(function *() {
-      const rdata = yield streamUtil.readStreamPromise(retStrm);
-
-      expect(rdata).is.equal(trimLine(`
-        #aaabbb
       `));
     });
   });
