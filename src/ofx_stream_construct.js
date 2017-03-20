@@ -2,6 +2,24 @@
 
 const stream = require('stream');
 
+function makeHeaderStream(headerMap) {
+  const itr = headerMap[Symbol.iterator]();
+
+  return new stream.Readable({
+    read () {
+      const data = itr.next();
+
+      if (data.done) {
+        this.push(null);
+      } else {
+        this.push(`${data.value[0]}:${data.value[1]}\n`);
+      }
+    }
+  });
+
+}
+
+
 //eslint-disable-next-line max-statements
 function checkType(elm) {
   const typeofElm = typeof elm;
@@ -119,6 +137,7 @@ function orderedDictToStream(pKey, pelm) {
 }
 
 module.exports = {
+  makeHeaderStream,
   orderedDictToStream,
   makeObjStream(ofxOrderedDict) {
    return orderedDictToStream('OFX', ofxOrderedDict);

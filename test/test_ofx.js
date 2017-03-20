@@ -3,15 +3,15 @@
 const {expect} = require('chai'), //eslint-disable-line object-curly-newline
       co = require('co'),
       fs = require('fs'),
-      ofxUtil = require('../src/ofxUtil'),
-      commonUtility = require('../src/commonUtility'),
-      //bankFile = require('../src/bankFileUtil'),
-      //stream = require('stream'),
       streamUtil = require('../src/streamUtil');
 
-const ofxInfo = require('../src/ofxInfo');
+const ofxInfo = require('../src/ofxInfo'),
+      {
+        makeHeaderStream,
+        orderedDictToStream,
+        makeObjStream,
+      } = require('../src/ofx_stream_construct');
 
-const $ = commonUtility.makeOrderedDict;
 
 const trimLine = (()=>{
     const linePattern = /(\n|^)(\s*#)/g,
@@ -82,20 +82,78 @@ function transText(options) {
 }
 */
 
-describe('ofx', () => {
+describe('test ofx info body', () => {
   const sampleFolderPath = 'test/work2/';
 
-  /*
-  const snbSampleCSVPath = sampleFolderPath + '/snb.csv',
-        fieldList = [
-          'date',
-          'contents',
-          'payment',
-          'income',
-          'balance',
-          'memo',
-        ]
-        */
+  it('ofx info head test', () => {
+    const testStream = makeHeaderStream(ofxInfo.header);
+
+    return co(function *() {
+      const rdata = yield streamUtil.readStreamPromise(testStream);
+
+      expect(rdata).is.equal(trimLine(`
+        #OFXHEADER:100
+        #DATA:OFXSGML
+        #VERSION:102
+        #SECURITY:NONE
+        #ENCODING:UTF-8
+        #CHARSET:CSUNICODE
+        #COMPRESSION:NONE
+        #OLDFILEUID:NONE
+        #NEWFILEUID:NONE
+      `));
+    });
+  });
+
+  it('ofx info body test', () => {
+    const testStream = makeObjStream(ofxInfo.body);
+
+    return co(function *() {
+      const rdata = yield streamUtil.readStreamPromise(testStream);
+
+      expect(rdata).is.equal(trimLine(`
+        #<OFX>
+        #<SIGNONMSGSRSV1>
+        #<SONRS>
+        #<STATUS>
+        #<CODE>0
+        #<SEVERITY>INFO
+        #</STATUS>
+        #<DTSERVER>YYYYMMDDhhmmss[+9:JST]
+        #<LANGUAGE>JPN
+        #<FI>
+        #<ORG>Smoke Beacon Bank
+        #</FI>
+        #</SONRS>
+        #</SIGNONMSGSRSV1>
+        #<BANKMSGSRSV1>
+        #<STMTTRNRS>
+        #<TRNUID>0
+        #<STATUS>
+        #<CODE>0
+        #<SEVERITY>INFO
+        #</STATUS>
+        #<STMTRS>
+        #<CURDEF>JPY
+        #<BANKACCTFROM>
+        #<BANKID>9901
+        #<BRANCHID>0101
+        #<ACCTID>04400091
+        #<ACCTTYPE>SAVINGS
+        #</BANKACCTFROM>
+        #<BANKTRANLIST>
+        #<DTSTART>YYYYMMDDhhmmss[+9:JST]
+        #<DTEND>YYYYMMDDhhmmss[+9:JST]
+        #</BANKTRANLIST>
+        #</STMTRS>
+        #<Dummy>0
+        #</STMTTRNRS>
+        #</BANKMSGSRSV1>
+        #</OFX>
+      `));
+    });
+  });
+
     it.skip('compare sample.ofx',()=> {
       //console.log(ofxInfo.body);
       //console.log(ofxInfo.body.SIGNONMSGSRSV1);
@@ -122,7 +180,7 @@ describe('ofx', () => {
       });
     });
 
-    it('construct OFX with  stream Object',()=> {
+    it.skip('construct OFX with  stream Object',()=> {
           return co(function *() {
             const ofxItr = ofxUtil.makeOfxItr({
               header: $(
@@ -150,7 +208,7 @@ describe('ofx', () => {
           });
         });
 
-    it('construct OFX',()=> {
+    it.skip('construct OFX',()=> {
           return co(function *() {
             const ofxItr = ofxUtil.makeOfxItr({
               header: $(

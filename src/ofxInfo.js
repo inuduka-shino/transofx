@@ -1,7 +1,9 @@
 /*eslint-env node */
 /*eslint no-console: 0 */
 
-const $ = require('./commonUtility').makeOrderedDict;
+function $(...data) {
+  return new Map(data);
+}
 
 module.exports = {
     header: $(
