@@ -6,8 +6,10 @@ const expect = require('chai').expect,
       streamUtil = require('../src/streamUtil'),
       {
       //  orderedDictToStream,
+        makeHeaderStream,
         makeOfxObjStream,
-      } = require('../src/ofx_stream_construct');
+      } = require('../src/ofx_stream_construct'),
+      ofxInfo = require('../src/ofxInfo');
 
 
 describe('SNB SAMBLE', ()=>{
@@ -44,15 +46,12 @@ describe('SNB SAMBLE', ()=>{
 
     it('SBI csv',() => {
       return co(function *() {
-        const rStrm = bankFile.readCSV(sbiCSVOption);
+        const rStrm = bankFile.readCSV(sbiCSVOption),
+              headerStrm = makeHeaderStream(ofxInfo.header);
         //makeOfxObjStream
 
-
         const rdata = yield streamUtil.readStreamPromise(
-          rStrm,
-          {
-            objectMode: true
-          }
+          headerStrm
         );
 
         expect(rdata).is.equal('aaaa');
