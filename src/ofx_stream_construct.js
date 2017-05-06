@@ -2,6 +2,24 @@
 
 const stream = require('stream');
 
+function makeHeaderStream(headerMap) {
+  const itr = headerMap[Symbol.iterator]();
+
+  return new stream.Readable({
+    read () {
+      const data = itr.next();
+
+      if (data.done) {
+        this.push(null);
+      } else {
+        this.push(`${data.value[0]}:${data.value[1]}\n`);
+      }
+    }
+  });
+
+}
+
+
 //eslint-disable-next-line max-statements
 function checkType(elm) {
   const typeofElm = typeof elm;
@@ -78,6 +96,8 @@ function odsArray(pKey, pelm, outStrm, orderedDictToStream) {
   pelm.reduce((prevPromise, elm) => {
     const cStrm = orderedDictToStream(pKey, elm);
 
+    //console.log(`reduce> ${pKey}:${elm}`);
+
     prevPromise.then(() =>{
       cStrm.pipe(outStrm, {
         end: false
@@ -99,6 +119,9 @@ function odsArray(pKey, pelm, outStrm, orderedDictToStream) {
 
 //eslint-disable-next-line max-statements
 function orderedDictToStream(pKey, pelm) {
+  // const util = require('util');
+
+  // console.log(`ods> ${pKey}:${util.inspect(pelm)}`);
   const elmType = checkType(pelm),
         outStrm = new stream.PassThrough();
 
@@ -119,8 +142,9 @@ function orderedDictToStream(pKey, pelm) {
 }
 
 module.exports = {
+  makeHeaderStream,
   orderedDictToStream,
-  makeObjStream(ofxOrderedDict) {
+  makeOfxObjStream(ofxOrderedDict) {
    return orderedDictToStream('OFX', ofxOrderedDict);
  }
 };

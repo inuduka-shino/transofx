@@ -1,7 +1,9 @@
 /*eslint-env node */
 /*eslint no-console: 0 */
 
-const $ = require('./commonUtility').makeOrderedDict;
+function $(...data) {
+  return new Map(data);
+}
 
 module.exports = {
     header: $(
@@ -50,10 +52,26 @@ module.exports = {
               )],
               ['BANKTRANLIST', $(
                 ['DTSTART', 'YYYYMMDDhhmmss[+9:JST]'],
-                ['DTEND', 'YYYYMMDDhhmmss[+9:JST]']
+                ['DTEND', 'YYYYMMDDhhmmss[+9:JST]'],
+                ['STMTTRN',[
+                  $(
+                    ['TRNTYPE', 'DEBIT'],
+                    ['DTPOSTED', 'YYYYMMDDhhmmss[+9:JST]'],
+                    ['TRNAMT', -100],
+                    ['FITID', 12010400000001],
+                    ['NAME', 'debit']
+                  ),
+                  $(
+                    ['TRNTYPE', 'DEP'],
+                    ['DTPOSTED', 'YYYYMMDDhhmmss[+9:JST]'],
+                    ['TRNAMT', 200],
+                    ['FITID', 12010400000002],
+                    ['NAME', 'payment']
+                  ),
+                ]]
               )]
-            )],
-            ['Dummy',0]
+            )]
+            // ['Dummy',0]
           )]
         )]
     ),

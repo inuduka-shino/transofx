@@ -1,4 +1,5 @@
 /*eslint-env node */
+//'use strict';
 
 const fs = require('fs'),
       iconv = require('iconv-lite'),
@@ -6,11 +7,15 @@ const fs = require('fs'),
       streamUtil = require('../src/streamUtil');
 
 module.exports = {
-  readCSV(csvPath0, option = {}) {
+  readCSV(csvPath0, opt) {
+
+    let option = {};
+
     if (typeof csvPath0 === 'object') {
       option = csvPath0; //eslint-disable-line no-param-reassign
     } else {
       option.csvPath = csvPath0;
+      option = opt;
     }
     const {
       csvPath,
