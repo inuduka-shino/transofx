@@ -8,8 +8,8 @@ const {expect} = require('chai'), //eslint-disable-line object-curly-newline
 const ofxInfo = require('../src/ofxInfo'),
       {
         makeHeaderStream,
-        orderedDictToStream,
-        makeObjStream,
+        // orderedDictToStream,
+        makeOfxObjStream,
       } = require('../src/ofx_stream_construct');
 
 
@@ -105,8 +105,45 @@ describe('test ofx info body', () => {
     });
   });
 
-  it('ofx info body test', () => {
-    const testStream = makeObjStream(ofxInfo.body);
+  it('配列',()=>{
+    const testStream = makeOfxObjStream([
+      'a',
+      'b',
+      'C',
+    ]);
+
+    return co(function *() {
+      const rdata = yield streamUtil.readStreamPromise(testStream);
+
+      expect(rdata).is.equal(trimLine(`
+        #<OFX>a
+        #<OFX>b
+        #<OFX>C
+      `));
+    });
+  });
+  it('オブジェクト',()=>{
+    const testStream = makeOfxObjStream($([
+      ['a','A'],
+      ['b','B'],
+      ['c','C'],
+    ]));
+
+    return co(function *() {
+      const rdata = yield streamUtil.readStreamPromise(testStream);
+
+      expect(rdata).is.equal(trimLine(`
+        #<OFX>
+        #<a>A
+        #<b>B
+        #<c>C
+        #</OFX>
+      `));
+    });
+  });
+
+  it.skip('ofx info body test', () => {
+    const testStream = makeOfxObjStream(ofxInfo.body);
 
     return co(function *() {
       const rdata = yield streamUtil.readStreamPromise(testStream);
@@ -146,7 +183,6 @@ describe('test ofx info body', () => {
         #<DTEND>YYYYMMDDhhmmss[+9:JST]
         #</BANKTRANLIST>
         #</STMTRS>
-        #<Dummy>0
         #</STMTTRNRS>
         #</BANKMSGSRSV1>
         #</OFX>
@@ -165,7 +201,7 @@ describe('test ofx info body', () => {
         const ofxPath = sampleFolderPath + 'sample.ofx';
 
 
-        const ofxStrm = ofxUtil.makeOfxStream({
+        const ofxStrm = ofxInfo.makeOfxObjStream({
             header: ofxInfo.header,
             body: ofxInfo.body
           });
@@ -180,9 +216,13 @@ describe('test ofx info body', () => {
       });
     });
 
+    function $(...data) {
+      return new Map(data);
+    }
+
     it.skip('construct OFX with  stream Object',()=> {
           return co(function *() {
-            const ofxItr = ofxUtil.makeOfxItr({
+            const ofxItr = ofxInfo.makeOfxItr({
               header: $(
                 ['testHeader1', 'testheader']
               ),
@@ -210,7 +250,7 @@ describe('test ofx info body', () => {
 
     it.skip('construct OFX',()=> {
           return co(function *() {
-            const ofxItr = ofxUtil.makeOfxItr({
+            const ofxItr = ofxInfo.makeOfxItr({
               header: $(
                 ['testHeader0', 'testheader'],
                 ['testHeader1', 'xxxxx']
