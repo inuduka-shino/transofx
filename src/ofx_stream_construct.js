@@ -139,7 +139,7 @@ function orderedDictToStream(pKey, pelm) {
 module.exports = {
   makeHeaderStream,
   orderedDictToStream,
-  makeObjStream(ofxOrderedDict) {
+  makeOfxObjStream(ofxOrderedDict) {
    return orderedDictToStream('OFX', ofxOrderedDict);
  }
 };
