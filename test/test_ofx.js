@@ -141,12 +141,19 @@ describe('test ofx info body', () => {
       `));
     });
   });
+
+  function $(...data) {
+    //console.log(data);
+    return new Map(data);
+  }
+
+
   it('オブジェクト2',()=>{
-    const testStream = makeOfxObjStream($([
+    const testStream = makeOfxObjStream($(
       ['a','A'],
       ['b','B'],
-      ['c','C'],
-    ]));
+      ['c','C']
+    ));
 
     return co(function *() {
       const rdata = yield streamUtil.readStreamPromise(testStream);
@@ -234,10 +241,6 @@ describe('test ofx info body', () => {
 
       });
     });
-
-    function $(...data) {
-      return new Map(data);
-    }
 
     it.skip('construct OFX with  stream Object',()=> {
           return co(function *() {
