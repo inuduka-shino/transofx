@@ -96,6 +96,8 @@ function odsArray(pKey, pelm, outStrm, orderedDictToStream) {
   pelm.reduce((prevPromise, elm) => {
     const cStrm = orderedDictToStream(pKey, elm);
 
+    console.log(`reduce> ${pKey}:${elm}`);
+
     prevPromise.then(() =>{
       cStrm.pipe(outStrm, {
         end: false
@@ -117,6 +119,9 @@ function odsArray(pKey, pelm, outStrm, orderedDictToStream) {
 
 //eslint-disable-next-line max-statements
 function orderedDictToStream(pKey, pelm) {
+  const util = require('util');
+
+  console.log(`ods> ${pKey}:${util.inspect(pelm)}`);
   const elmType = checkType(pelm),
         outStrm = new stream.PassThrough();
 

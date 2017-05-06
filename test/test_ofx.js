@@ -123,6 +123,25 @@ describe('test ofx info body', () => {
     });
   });
   it('オブジェクト',()=>{
+    const testStream = makeOfxObjStream(new Map([
+      ['a','A'],
+      ['b','B'],
+      ['c','C'],
+    ]));
+
+    return co(function *() {
+      const rdata = yield streamUtil.readStreamPromise(testStream);
+
+      expect(rdata).is.equal(trimLine(`
+        #<OFX>
+        #<a>A
+        #<b>B
+        #<c>C
+        #</OFX>
+      `));
+    });
+  });
+  it('オブジェクト2',()=>{
     const testStream = makeOfxObjStream($([
       ['a','A'],
       ['b','B'],
