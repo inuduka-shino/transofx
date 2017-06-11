@@ -3,3 +3,4 @@
 /test/work*
 !/test/work/.gitkeep
 /*.log
+config.js

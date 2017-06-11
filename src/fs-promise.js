@@ -14,6 +14,7 @@ const ifObj = {};
     'stat',
     'readdir',
     'writeFile',
+    'open',
   ].forEach((name)=>{
     const newName = name + 'Promise';
 
